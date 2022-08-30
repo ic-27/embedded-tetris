@@ -10,15 +10,24 @@
 
 ISR(TIMER1_COMPA_vect)
 {
-    // toggle led here
-    PORTC ^= (1 << 0);
+    // Audio functionality, switch to a different note based on tetris_melody
+    if(tetris_melody[note]) {
+	audio.change_note(tetris_melody[note]);
+    }
+    ++note;
+    if(note >= tetris_melody_length) {
+	note = 0;
+    }
+
+    // Drop a piece every 500 ms
 }
 
 int main(void)
 {
     display.init();
-    audio.init(NOTE_E4);
-    /* audio.play(); */
+    audio.init();
+    audio.play();
+
     /* _delay_ms(500); */
     /* audio.change_note(NOTE_A4); */
     /* _delay_ms(500); */
@@ -26,7 +35,6 @@ int main(void)
 
     /* display.spi_send_cmd(OP_DIGIT2, 0xFF); */
     /* display.spi_send_cmd(OP_DIGIT3, 0xFF); */
-    DDRC |= (1<<0);
     for(;;) {
 
 	}

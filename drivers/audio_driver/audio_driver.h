@@ -17,20 +17,23 @@
 #define NOTE_GS4 74  // 415 Hz
 #define NOTE_A4  70  // 440 Hz
 
-/* #define PLAY() (TCCR0 |=  (1 << CS02)) */
-/* #define STOP() (TCCR0 &= ~(1 << CS02)) */
-
-void init_audio(unsigned char starting_note);
-void play_audio(void);
-void stop_audio(void);
-void change_note(unsigned char note);
+extern unsigned char note; // keep track of where we are in tetris_melody
+extern unsigned char tetris_melody[];
+const extern unsigned char tetris_melody_length;
 
 typedef struct audio {
-    void (*init)(unsigned char starting_note);
+    void (*init)();
     void (*play)(void);
     void (*stop)(void);
     void (*change_note)(unsigned char note);
 } Audio;
 extern Audio audio;
+
+void init_audio();
+void play_audio(void);
+void stop_audio(void);
+void change_note(unsigned char note);
+
+
 
 #endif
