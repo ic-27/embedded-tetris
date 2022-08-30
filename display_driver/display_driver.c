@@ -32,7 +32,7 @@ static void _spi_init(void)
  *
  * Return: void
  */
-void init(void)
+void init_display(void)
 {
     _spi_init();
     spi_send_cmd_num(OP_SHUTDOWN, 1);
@@ -124,7 +124,7 @@ void clear(void)
 }
 
 Display display = {
-    .init = &init,
+    .init = &init_display,
     .spi_send_cmd = &spi_send_cmd,
     .spi_send_cmd_num = &spi_send_cmd_num,
     .clear = &clear

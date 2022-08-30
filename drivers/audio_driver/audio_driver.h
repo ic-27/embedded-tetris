@@ -1,3 +1,6 @@
+#ifndef AUDIO_DRIVER_H
+#define AUDIO_DRIVER_H
+
 /**
  * Macros for to set OCRn to to produce corresponding note/frequency, note this
  * is at 16 MHz clock frequency and 256 prescaler, formula on P74 of atmega32
@@ -13,3 +16,21 @@
 #define NOTE_G4  79  // 392 Hz
 #define NOTE_GS4 74  // 415 Hz
 #define NOTE_A4  70  // 440 Hz
+
+/* #define PLAY() (TCCR0 |=  (1 << CS02)) */
+/* #define STOP() (TCCR0 &= ~(1 << CS02)) */
+
+void init_audio(unsigned char starting_note);
+void play_audio(void);
+void stop_audio(void);
+void change_note(unsigned char note);
+
+typedef struct audio {
+    void (*init)(unsigned char starting_note);
+    void (*play)(void);
+    void (*stop)(void);
+    void (*change_note)(unsigned char note);
+} Audio;
+extern Audio audio;
+
+#endif
