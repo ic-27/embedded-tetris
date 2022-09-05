@@ -20,8 +20,9 @@
  */
 static void _spi_init(void)
 {
+    // MSB, f_osc/2
     DDRB = (1<<MOSI)|(1<<SCK)|(1<<SS);
-    SPCR = (1<<SPE)|(1<<MSTR);//|(1<<SPR0); // (1<<DORD)|
+    SPCR = (1<<SPE)|(1<<MSTR);
     SPSR = (1<<SPI2X);
 }
 
@@ -94,7 +95,7 @@ void spi_send_cmd_num(unsigned char cmd, unsigned char data)
 
 /**
  * refresh() - Refresh the display
- * 
+ *
  * Refresh the display to show whatever changes have been made.
  *
  * Return: void

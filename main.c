@@ -5,7 +5,7 @@
 #include "spi_driver.h"
 #include "audio_driver.h"
 
-#define F_CPU 16000000UL
+#include "common.h"
 #include <util/delay.h>
 
 ISR(TIMER1_COMPA_vect)
@@ -14,16 +14,17 @@ ISR(TIMER1_COMPA_vect)
     if(tetris_melody[note]) {
 	audio.change_note(tetris_melody[note]);
     }
+
     ++note;
     if(note >= tetris_melody_length) {
 	note = 0;
     }
-
     // Drop a piece every 500 ms
 }
 
 int main(void)
 {
+    sei();
     display.init();
     audio.init();
     audio.play();

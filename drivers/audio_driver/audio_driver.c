@@ -54,11 +54,10 @@ void init_audio()
     // length of each note, amongst other things. See the ISR definition.
     TCCR1A = 0;
     TCCR1B = (1 << WGM12);//|(1 << CS12)|(1 << CS10);
-    OCR1A = 3905; // 250 ms
+    OCR1A = OCR1A_VAL;//1952;// 3905; // 250 ms
     TCNT1 = 0;
     // Enable the interrupt for TIMER1
 #warning probably better placement for these rather than in init_audio()
-    sei();
     TIMSK = (1 << OCIE1A); // enable interrupt
     TIFR  = (1 << OCF1A);  // allow execution of interrupt
 }
