@@ -1,12 +1,31 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
+#include "button_handler.h"
 #include "display_driver.h"
 #include "spi_driver.h"
 #include "audio_driver.h"
 
 #include "common.h"
 #include <util/delay.h>
+
+#warning how do you find out the name of the interrupt vector?
+ISR(INT2_vect)
+{
+    config_distinct();
+
+    unsigned char temp_PINA = PINA; // save before PINA changes
+    if(temp_PINA  & (1 << BUTTON_LEFT)) {
+	PORTA |= (1 << 0);
+    } else if(temp_PINA & (1 << BUTTON_RIGHT)) {
+	PORTA &= ~(1 << 0);
+    }
+    _delay_ms(100);
+
+
+    config_common();
+    GIFR |= (1 << INTF2);
+}
 
 ISR(TIMER1_COMPA_vect)
 {
@@ -25,9 +44,12 @@ ISR(TIMER1_COMPA_vect)
 int main(void)
 {
     sei();
-    display.init();
-    audio.init();
-    audio.play();
+    /* display.init(); */
+    /* audio.init(); */
+    /* audio.play(); */
+    init_buttons();
+
+    DDRA |= (1 << 0);
 
     /* _delay_ms(500); */
     /* audio.change_note(NOTE_A4); */
