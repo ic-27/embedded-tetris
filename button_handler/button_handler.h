@@ -4,9 +4,11 @@
 #define BUT_INTERRUPT_PIN PB2
 #define NUM_BUTTONS 5
 
-#define BUTTON_LEFT  PB1
-#define BUTTON_RIGHT PB2
-#define BUTTON_DOWN  PB3
+#define ROTATE_LEFT  PA1
+#define ROTATE_RIGHT PA2
+#define MOVE_LEFT    PA3
+#define MOVE_DOWN    PA4
+#define MOVE_RIGHT   PA5
 
 void init_buttons(void);
 void config_common(void);

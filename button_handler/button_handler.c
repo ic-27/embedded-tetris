@@ -1,9 +1,18 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "button_handler.h"
 
 static unsigned char button_pressed = 0;
 static unsigned int debounce_state[NUM_BUTTONS] = {0}; // record last time when pressed
 
+/**
+ * init_buttons()
+ *
+ * Initialize all the buttons in 'common mode' in which the interrupt pin is an
+ * input w/ internal pull-up, and the 5 buttons as outputs which default to 0.
+ *
+ * Return: void
+ */
 void init_buttons(void)
 {
     DDRB &= ~(1 << DDB2); // DDB2 is button interrupt pin
@@ -17,7 +26,7 @@ void init_buttons(void)
 
 /**
  * config_common()
- * 
+ *
  * Configure the interrupt pin as an input w/ a pull-up, and the 5 buttons as
  * outputs which default to 0. See configure_distinct() function to understand
  * how the button mechanism works.
@@ -49,21 +58,21 @@ void config_distinct(void)
 {
     //GICR &= ~(1 << INT2);
 
-    PORTB &= ~(1 << PB2);
+    // b4 5 buttons output low, ext interrupt is input high
     DDRB |= (1 << DDB2); // Configure pin as output
-    PORTB &= ~(1 << PB2); // Configure pin as low output
+    PORTB &= ~(1 << PB2);
 
     DDRA &= ~(0b00111110); // Configure the 5 buttons as inputs
     PORTA |= 0b00111110; // Configure pins w/ pull-up resistor
-}
 
+}
 
 /* Need to understand how to interface multiple buttons to a single interrupt (or 2) 
 
 */
 
 
-/* Need an indication of when the debounce time has passed for a certain button 
+/* Need an indication of when the debounce time has passed for a certain button
 
    First, we need to realize that we have multiple buttons mapped to a single
    interrupt.  Only one interrupt is edge-triggered, so we probably want to only
