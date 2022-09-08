@@ -1,106 +1,106 @@
+#include "common.h"
+#include <util/delay.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "button_handler.h"
 
-static unsigned char button_pressed = 0;
-static unsigned int debounce_state[NUM_BUTTONS] = {0}; // record last time when pressed
+static unsigned char delayed = 0;
+static unsigned char delay_state[NUM_BUTTONS] = {0};
+
+#warning try to find a more efficient way for this
+
+/**
+ * ISR TIMER2
+ *
+ * This ISR is used for the polling of the buttons.
+
+ * Check for a button press every 30 ms. If a button is pressed, give
+ * it a delay of (DELAY-2) * 30 ms before it can be pressed again.
+ */
+ISR(TIMER2_COMP_vect)
+{
+    if(!delay_state[MOVE_LEFT_DEL] && !(PINA & (1 << MOVE_LEFT)))
+	{
+	    PORTD ^= (1 << PD0);
+	    delay_state[MOVE_LEFT_DEL] = 1;
+	}
+    else if(!delay_state[MOVE_RIGHT_DEL] && !(PINA & (1 << MOVE_RIGHT)))
+	{
+	    PORTD ^= (1 << PD0);
+	    delay_state[MOVE_RIGHT_DEL] = 1;
+	}
+    else if(!delay_state[ROTATE_LEFT_DEL] && !(PINA & (1 << ROTATE_LEFT)))
+	{
+	    PORTD ^= (1 << PD0);
+	    delay_state[ROTATE_LEFT_DEL] = 1;
+	}
+    else if(!delay_state[ROTATE_RIGHT_DEL] && !(PINA & (1 << ROTATE_RIGHT)))
+	{
+	    PORTD ^= (1 << PD0);
+	    delay_state[ROTATE_RIGHT_DEL] = 1;
+	}
+    else if(!delay_state[MOVE_DOWN_DEL] && !(PINA & (1 << MOVE_DOWN)))
+	{
+	    PORTD ^= (1 << PD0);
+	    delay_state[MOVE_DOWN_DEL] = 1;
+	}
+
+    // check if delay has ended
+    if(delay_state[MOVE_LEFT_DEL] && delay_state[MOVE_LEFT_DEL] < DELAY) {
+	++delay_state[MOVE_LEFT_DEL];
+    } else {
+	delay_state[MOVE_LEFT_DEL] = 0;
+    }
+
+    if(delay_state[MOVE_RIGHT_DEL] && delay_state[MOVE_RIGHT_DEL] < DELAY) {
+	++delay_state[MOVE_RIGHT_DEL];
+    } else {
+	delay_state[MOVE_RIGHT_DEL] = 0;
+    }
+
+    if(delay_state[ROTATE_LEFT_DEL] && delay_state[ROTATE_LEFT_DEL] < DELAY) {
+	++delay_state[ROTATE_LEFT_DEL];
+    } else {
+	delay_state[ROTATE_LEFT_DEL] = 0;
+    }
+
+    if(delay_state[ROTATE_RIGHT_DEL] && delay_state[ROTATE_RIGHT_DEL] < DELAY) {
+	++delay_state[ROTATE_RIGHT_DEL];
+    } else {
+	delay_state[ROTATE_RIGHT_DEL] = 0;
+    }
+
+    if(delay_state[MOVE_DOWN_DEL] && delay_state[MOVE_DOWN_DEL] < DELAY) {
+	++delay_state[MOVE_DOWN_DEL];
+    } else {
+	delay_state[MOVE_DOWN_DEL] = 0;
+    }
+}
 
 /**
  * init_buttons()
  *
- * Initialize all the buttons in 'common mode' in which the interrupt pin is an
- * input w/ internal pull-up, and the 5 buttons as outputs which default to 0.
+ * Initialize buttons as inputs w/ internal pull-ups.
+ * PA0 is chosen for ADC, which is why it is not used.
+ *
+ * A polling method will be used instead of an interrupt method. Given
+ * the rate at which the user will be pressing the buttons and that
+ * there is only a small benefit in using interrupts, a polling method
+ * will suffice.
  *
  * Return: void
  */
 void init_buttons(void)
 {
-    DDRB &= ~(1 << DDB2); // DDB2 is button interrupt pin
-    PORTB |= (1 << PB2); // Configure pin w/ pull-up resistor
+    DDRA &= ~(0b00111110);
+    PORTA |= 0b00111110;
 
-    DDRA |= 0b00111110; // Configure the 5 buttons as outputs
-    PORTA &= ~(0b00111110);
+    // Initialize timer0 for polling method.
+    TCCR2 = (1 << WGM21) | (1 << CS22) | (1 << CS21) | (1 << CS20);
+    OCR2 = 234; // 30 ms
+    TCNT2 = 0;
 
-    GICR |= (1 << INT2);
+    TIMSK |= (1 << OCIE2);
+    TIFR |= (1 << OCF2);
 }
-
-/**
- * config_common()
- *
- * Configure the interrupt pin as an input w/ a pull-up, and the 5 buttons as
- * outputs which default to 0. See configure_distinct() function to understand
- * how the button mechanism works.
- *
- * Return: void
- */
-void config_common(void)
-{
-    PORTB |= (1 << PB2);
-    DDRB  &= ~(1 << DDB2); // DDB2 is button interrupt pin
-    PORTB |= (1 << PB2); // Configure pin w/ pull-up resistor
-
-    DDRA |= 0b00111110; // Configure the 5 buttons as outputs
-    PORTA &= ~(0b00111110);
-
-    //GICR |= (1 << INT2);
-}
-
-/**
- * configure_distinct()
- *
- * Configure the interrupt pin to logic low output, and the 5 buttons as inputs
- * w/ pull-ups. This function is called immediately after an interrupt. Using
- * this, we can determine which buttons have been pressed in the interrupt.
- *
- * Return: void
- */
-void config_distinct(void)
-{
-    //GICR &= ~(1 << INT2);
-
-    // b4 5 buttons output low, ext interrupt is input high
-    DDRB |= (1 << DDB2); // Configure pin as output
-    PORTB &= ~(1 << PB2);
-
-    DDRA &= ~(0b00111110); // Configure the 5 buttons as inputs
-    PORTA |= 0b00111110; // Configure pins w/ pull-up resistor
-
-}
-
-/* Need to understand how to interface multiple buttons to a single interrupt (or 2) 
-
-*/
-
-
-/* Need an indication of when the debounce time has passed for a certain button
-
-   First, we need to realize that we have multiple buttons mapped to a single
-   interrupt.  Only one interrupt is edge-triggered, so we probably want to only
-   use that one.  Level-triggered interrupts are problematic because they will
-   keep calling the interrupt if they are at that logic level, and we don't want
-   to keep interrupting the cpu from performing other tasks.
-
-   This means we will have 5 buttons mapped to a single interrupt.  Say that we
-   are able to detect which button has been pressed in the interrupt.  We need a
-   way to debounce that certain button for a certain amount of time.
-
-   Once a button has been detected (interrupt has been triggered), start a
-   timer. The timer will only run if there has been a button pressed, and will
-   stop when it detects that no buttons have been pressed. This is such that we
-   do not waste any precious cpu cycles when handling the timer interrupt. This
-   is also nice because there will be no overflow,
-
-   The purpose of the timer interrupt is to perform button debouncing, and allow
-   the user to invoke an action again after a certain amount of time has passed.
-   The rate at which the timer will run is 25ms to increase the resolution of
-   the timing of when something will be debounced. The debounce period will
-   probably be somewhere between 100ms-250ms, there will be some trial and
-   error.
-
-   We can use a counter, for how many 25ms have passed and log it into the array
-   debounce_state. If the value in the array is not 0, then that means it is
-   currently debouncing. We can put the timer into CTC mode and keep triggering
-   an interrupt every 25ms, which shouldn't be very noticeable if the user
-   happens to press a button when the timer has already started!
-*/
-

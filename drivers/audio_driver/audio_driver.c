@@ -58,8 +58,8 @@ void init_audio()
     TCNT1 = 0;
     // Enable the interrupt for TIMER1
 #warning probably better placement for these rather than in init_audio()
-    TIMSK = (1 << OCIE1A); // enable interrupt
-    TIFR  = (1 << OCF1A);  // allow execution of interrupt
+    TIMSK |= (1 << OCIE1A); // enable interrupt
+    TIFR  |= (1 << OCF1A);  // allow execution of interrupt
 }
 
 /**
