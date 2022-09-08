@@ -15,8 +15,9 @@ static unsigned char delay_state[NUM_BUTTONS] = {0};
  *
  * This ISR is used for the polling of the buttons.
 
- * Check for a button press every 30 ms. If a button is pressed, give
- * it a delay of (DELAY-2) * 30 ms before it can be pressed again.
+ * Check for a button press every 30 ms. If a button is pressed, give it a delay
+ * of (DELAY-2) * 30 ms before it can be pressed again. This way, each button
+ * has its own 'debounce'.
  */
 ISR(TIMER2_COMP_vect)
 {
@@ -104,3 +105,7 @@ void init_buttons(void)
     TIMSK |= (1 << OCIE2);
     TIFR |= (1 << OCF2);
 }
+
+Button button = {
+    .init = &init_buttons
+};

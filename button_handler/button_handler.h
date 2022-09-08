@@ -21,4 +21,9 @@ void init_buttons(void);
 void config_common(void);
 void config_distinct(void);
 
+typedef struct button {
+    void (*init)();
+} Button;
+extern Button button;
+
 #endif

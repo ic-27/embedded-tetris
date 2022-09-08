@@ -29,7 +29,7 @@ int main(void)
     display.init();
     audio.init();
     //audio.play();
-    init_buttons();
+    button.init();
 
     DDRD |= 0xFF;
 
