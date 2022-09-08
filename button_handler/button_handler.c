@@ -20,27 +20,27 @@ static unsigned char delay_state[NUM_BUTTONS] = {0};
  */
 ISR(TIMER2_COMP_vect)
 {
-    if(!delay_state[MOVE_LEFT_DEL] && !(PINA & (1 << MOVE_LEFT)))
+    if(!(PINA & (1 << MOVE_LEFT)) && !delay_state[MOVE_LEFT_DEL])
 	{
 	    PORTD ^= (1 << PD0);
 	    delay_state[MOVE_LEFT_DEL] = 1;
 	}
-    else if(!delay_state[MOVE_RIGHT_DEL] && !(PINA & (1 << MOVE_RIGHT)))
+    else if(!(PINA & (1 << MOVE_RIGHT)) && !delay_state[MOVE_RIGHT_DEL])
 	{
 	    PORTD ^= (1 << PD0);
 	    delay_state[MOVE_RIGHT_DEL] = 1;
 	}
-    else if(!delay_state[ROTATE_LEFT_DEL] && !(PINA & (1 << ROTATE_LEFT)))
+    else if(!(PINA & (1 << ROTATE_LEFT)) && !delay_state[ROTATE_LEFT_DEL])
 	{
 	    PORTD ^= (1 << PD0);
 	    delay_state[ROTATE_LEFT_DEL] = 1;
 	}
-    else if(!delay_state[ROTATE_RIGHT_DEL] && !(PINA & (1 << ROTATE_RIGHT)))
+    else if(!(PINA & (1 << ROTATE_RIGHT)) && !delay_state[ROTATE_RIGHT_DEL])
 	{
 	    PORTD ^= (1 << PD0);
 	    delay_state[ROTATE_RIGHT_DEL] = 1;
 	}
-    else if(!delay_state[MOVE_DOWN_DEL] && !(PINA & (1 << MOVE_DOWN)))
+    else if(!(PINA & (1 << MOVE_DOWN)) && !delay_state[MOVE_DOWN_DEL])
 	{
 	    PORTD ^= (1 << PD0);
 	    delay_state[MOVE_DOWN_DEL] = 1;
