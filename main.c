@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
+#include "bt_driver.h"
 #include "button_handler.h"
 #include "display_driver.h"
 #include "spi_driver.h"
@@ -28,10 +29,11 @@ int main(void)
     sei();
     display.init();
     audio.init();
-    //audio.play();
+    audio.play();
     button.init();
 
-    DDRD |= 0xFF;
+    DDRD |= (1 << PD2); // just for testing, delete later
+    init_uart();
 
     /* _delay_ms(500); */
     /* audio.change_note(NOTE_A4); */
@@ -41,7 +43,9 @@ int main(void)
     /* display.spi_send_cmd(OP_DIGIT2, 0xFF); */
     /* display.spi_send_cmd(OP_DIGIT3, 0xFF); */
     for(;;) {
-	
+	/* uart_tx('1'); */
+	/* _delay_ms(250); */
+
     }
 }
 
