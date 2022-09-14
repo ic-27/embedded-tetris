@@ -1,0 +1,178 @@
+#include <avr/io.h>
+#include <stdlib.h>
+
+#include "audio_driver.h"
+#include "bt_driver.h"
+#include "display_driver.h"
+
+#include "tetris.h"
+#include "button_handler.h"
+#include "common.h"
+
+unsigned char board[ROWS][COLUMNS] = {0};
+Tetronimo tetronimo = {0};
+
+/**
+ * init_adc()
+ *
+ * Initialize ADC for random tetronimo generation.
+ *
+ * Return: void
+ */
+void init_adc(void)
+{
+    ADMUX  |= (1 << 6);
+    ADCSRA |= (1 << 7);
+}
+
+/**
+ * gen_rand_tetronimo()
+ *
+ * Generate a random tetronimo piece using ADC
+ *
+ * Return: void
+ p*/
+static unsigned char gen_rand_tetronimo(void)
+{
+    ADCSRA |= BIT6; // start conversion
+
+    while(ADCSRA & BIT6);
+    srand(ADC);
+    return rand()%7;
+}
+
+/**
+ * init_tetris()
+ *
+ * Initialize all the different peripherals.
+ *
+ * Return: void
+ */
+void init_tetris(void)
+{
+    // initialization of drivers
+    display.init();
+    audio.init();
+    button.init();
+    bluetooth.init();
+
+    // initializations in this module
+    init_adc();
+}
+
+/**
+ * _set_tetronimo_start_pos()
+ *
+ * Set the starting position of the tetronimo on the board.
+ * Note that cell 3 will be set as the center.
+ *
+ * Return: void
+ */
+static void _set_tetronimo_start_pos(unsigned char c1_x, unsigned char c1_y,
+				     unsigned char c2_x, unsigned char c2_y,
+				     unsigned char c3_x, unsigned char c3_y,
+				     unsigned char c4_x, unsigned char c4_y)
+{
+    tetronimo.cent_x_coord = c3_x;
+    tetronimo.cent_y_coord = c3_y;
+
+    tetronimo.c1 = (Cell){.x=c1_x, .y=c1_y};
+    tetronimo.c2 = (Cell){.x=c2_x, .y=c2_y};
+    tetronimo.c3 = (Cell){.x=c3_x, .y=c3_y};
+    tetronimo.c4 = (Cell){.x=c4_x, .y=c4_y};
+}
+
+/**
+ * init_tetronimo()
+ *
+ * Return: void
+ */
+static void init_tetronimo()
+{
+    tetronimo.type = gen_rand_tetronimo();
+    tetronimo.rotation = ROT_0_DEG;
+
+    // Set starting coordinates of center piece depending on tetronimo type
+    switch(tetronimo.type) {
+    case I_PIECE:
+	_set_tetronimo_start_pos(3,0, 3,1, 3,2, 3,3);
+	break;
+    case O_PIECE:
+	_set_tetronimo_start_pos(3,2, 4,2, 3,3, 4,3);
+	break;
+    case T_PIECE:
+	_set_tetronimo_start_pos(2,3, 3,2, 3,3, 4,3);
+	break;
+    case Z_PIECE:
+	_set_tetronimo_start_pos(2,2, 3,2, 3,3, 4,3);
+	break;
+    case S_PIECE:
+	break;
+    case L_PIECE:
+	break;
+    case J_PIECE:
+	break;
+    }
+}
+
+/**
+ * shift_tetronimo_ccw()
+ * @x: x coord
+ * @y: y coord
+ *
+ * Shift all cells in tetronimo (x,y) counterclockwise.
+ * The formula is: x_new = y_old;
+ *                 y_new = 1 - (x_old - (me - 2));
+ * Variable _me_ is the maximum amount of cells the tetronimo takes up across an
+ * axis.
+ *
+ * Return: void
+ */
+static void shift_tetronimo_ccw()
+{
+    /* unsigned char x_old = tetronimo.c1.x; */
+    /* tetronimo.c1.x = tetronimo.c1.y; */
+    /* tetronimo.c1.y = 1 - (x_old - (tetronimo.me - 2)); */
+
+    /* x_old = tetronimo.c2.x; */
+    /* tetronimo.c2.x = tetronimo.c2.y; */
+    /* tetronimo.c2.y = 1 - (x_old - (tetronimo.me - 2)); */
+
+    /* x_old = tetronimo.c3.x; */
+    /* tetronimo.c3.x = tetronimo.c3.y; */
+    /* tetronimo.c3.y = 1 - (x_old - (tetronimo.me - 2)); */
+
+    /* x_old = tetronimo.c4.x; */
+    /* tetronimo.c4.x = tetronimo.c4.y; */
+    /* tetronimo.c4.y = 1 - (x_old - (tetronimo.me - 2)); */
+}
+
+/**
+ * shift_tetronimo_cw()
+ *
+ * Shift all cells in tetronimo (x,y) clockwise.
+ * The formula is: x_new = 1 - (y_old - (me - 2));
+ *                 y_new = x_old;
+ * Variable _me_ is the maximum amount of cells the tetronimo takes up across an
+ * axis.
+ *
+ * Return: void
+ */
+static void shift_tetronimo_cw(void)
+{
+    /* unsigned char y_old = tetronimo.c1.y; */
+    /* tetronimo.c1.y = tetronimo.c1.x; */
+    /* tetronimo.c1.x = 1 - (y_old - (tetronimo.me - 2)); */
+
+    /* y_old = tetronimo.c2.y; */
+    /* tetronimo.c2.y = tetronimo.c2.x; */
+    /* tetronimo.c2.x = 1 - (y_old - (tetronimo.me - 2)); */
+
+    /* y_old = tetronimo.c3.y; */
+    /* tetronimo.c3.y = tetronimo.c3.x; */
+    /* tetronimo.c3.x = 1 - (y_old - (tetronimo.me - 2)); */
+
+    /* y_old = tetronimo.c4.y; */
+    /* tetronimo.c4.y = tetronimo.c4.x; */
+    /* tetronimo.c4.x = 1 - (y_old - (tetronimo.me - 2)); */
+}

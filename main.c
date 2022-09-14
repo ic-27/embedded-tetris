@@ -7,6 +7,9 @@
 #include "spi_driver.h"
 #include "audio_driver.h"
 
+#include "tetris.h"
+#include "display.h"
+
 #include "common.h"
 #include <util/delay.h>
 
@@ -27,21 +30,25 @@ ISR(TIMER1_COMPA_vect)
 int main(void)
 {
     sei();
-    display.init();
-    audio.init();
-    audio.play();
-    button.init();
+    init_tetris();
+    /* display.init(); */
+    /* audio.init(); */
+    /* audio.play(); */
+    /* button.init(); */
 
     DDRD |= (1 << PD2); // just for testing, delete later
-    init_uart();
+    /* bluetooth.init(); */
 
     /* _delay_ms(500); */
     /* audio.change_note(NOTE_A4); */
     /* _delay_ms(500); */
     /* audio.stop(); */
 
-    /* display.spi_send_cmd(OP_DIGIT2, 0xFF); */
-    /* display.spi_send_cmd(OP_DIGIT3, 0xFF); */
+    /* display.spi_send_cmd_top(OP_DIGIT2, 0x77); */
+    //display.spi_send_cmd_bot(OP_DIGIT7, 0x7F);
+
+    update_display();
+
     for(;;) {
 	/* uart_tx('1'); */
 	/* _delay_ms(250); */

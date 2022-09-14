@@ -4,8 +4,6 @@
  * DESCRIPTION:
  * This is the display driver for the 2 8x8 dot matrix displays. Two MAX7219 are
  * used mainly to help display the contents at 80 MHz.
- * Because in this project the SPI is only ever used for interfacing with the
- * MAX7219, it was deemed unnecessary to write a separate SPI driver.
  */
 
 #include "display_driver.h"
@@ -61,6 +59,63 @@ void spi_send_cmd(unsigned char cmd, unsigned char data)
     while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
     SPDR = data;
     while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
+
+    /* SPDR = OP_NOOP; */
+    /* while(!(SPSR & (1<<SPIF))); */
+    /* SPDR = OP_NOOP; */
+    /* while(!(SPSR & (1<<SPIF))); */
+
+    PORTB |= (1<<SS);
+}
+
+/**
+ * spi_send_cmd_top()
+ * @cmd:  byte containing command
+ * @data: byte containing data to send
+ *
+ * Send 2 byte command to the top led matrix
+ *
+ * Return: void
+ */
+void spi_send_cmd_top(unsigned char cmd, unsigned char data)
+{
+    PORTB &= ~(1<<SS);
+
+    SPDR = OP_NOOP;
+    while(!(SPSR & (1<<SPIF)));
+    SPDR = OP_NOOP;
+    while(!(SPSR & (1<<SPIF)));
+
+    SPDR = cmd;
+    while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
+    SPDR = data;
+    while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
+
+    PORTB |= (1<<SS);
+}
+
+/**
+ * spi_send_cmd_bot()
+ * @cmd:  byte containing command
+ * @data: byte containing data to send
+ *
+ * Send 2 byte command to the bottom led matrix
+ *
+ * Return: void
+ */
+void spi_send_cmd_bot(unsigned char cmd, unsigned char data)
+{
+    PORTB &= ~(1<<SS);
+
+    SPDR = cmd;
+    while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
+    SPDR = data;
+    while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
+
+    SPDR = OP_NOOP;
+    while(!(SPSR & (1<<SPIF)));
+    SPDR = OP_NOOP;
+    while(!(SPSR & (1<<SPIF)));
 
     PORTB |= (1<<SS);
 }
@@ -127,6 +182,8 @@ void clear(void)
 Display display = {
     .init = &init_display,
     .spi_send_cmd = &spi_send_cmd,
+    .spi_send_cmd_top = &spi_send_cmd_top,
+    .spi_send_cmd_bot = &spi_send_cmd_bot,
     .spi_send_cmd_num = &spi_send_cmd_num,
     .clear = &clear
 };
