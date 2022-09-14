@@ -13,9 +13,9 @@
 
 /**
  * update_display()
- * 
+ *
  * Update the display according to the 'board' variable.
- * Note that because the board starts displaying from row 4. Rows 1-3 are used 
+ * Note that because the board starts displaying from row 4. Rows 1-3 are used
  * to as a starting place to spawn a tetris piece.
  *
  * Return: void
