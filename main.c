@@ -4,7 +4,6 @@
 #include "bt_driver.h"
 #include "button_handler.h"
 #include "display_driver.h"
-#include "spi_driver.h"
 #include "audio_driver.h"
 
 #include "tetris.h"

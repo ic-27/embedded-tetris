@@ -8,8 +8,6 @@
 static unsigned char delayed = 0;
 static unsigned char delay_state[NUM_BUTTONS] = {0};
 
-#warning try to find a more efficient way for this
-
 /**
  * ISR TIMER2
  *
