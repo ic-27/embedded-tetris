@@ -3,11 +3,10 @@
  *
  * DESCRIPTION:
  * This is the display driver for the 2 8x8 dot matrix displays. Two MAX7219 are
- * used mainly to help display the contents at 80 MHz.
+ * used to help display the contents at 80 MHz.
  */
-
+#include <avr/io.h>
 #include "display_driver.h"
-#include "spi_driver.h"
 
 /**
  * _spi_init() - Initialize SPI settings
@@ -59,11 +58,6 @@ void spi_send_cmd(unsigned char cmd, unsigned char data)
     while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
     SPDR = data;
     while(!(SPSR & (1<<SPIF))); // wait for transmission to be done
-
-    /* SPDR = OP_NOOP; */
-    /* while(!(SPSR & (1<<SPIF))); */
-    /* SPDR = OP_NOOP; */
-    /* while(!(SPSR & (1<<SPIF))); */
 
     PORTB |= (1<<SS);
 }
@@ -146,18 +140,6 @@ void spi_send_cmd_num(unsigned char cmd, unsigned char data)
     }
 
     PORTB |= (1<<SS);
-}
-
-/**
- * refresh() - Refresh the display
- *
- * Refresh the display to show whatever changes have been made.
- *
- * Return: void
- */
-void refresh(void)
-{
-    
 }
 
 /**

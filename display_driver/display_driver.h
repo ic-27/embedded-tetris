@@ -1,6 +1,12 @@
 #ifndef DISPLAY_DRIVER_H
 #define DISPLAY_DRIVER_H 1
 
+/* SPI Pin Macros */
+#define SCK  PB7
+#define MISO PB6
+#define MOSI PB5
+#define SS   PB4
+
 /* MAX7219 Commands */
 #define OP_NOOP          0
 #define OP_DIGIT0        1
@@ -40,7 +46,6 @@ typedef struct display {
 extern Display display;
 
 void init(void);
-void refresh(void);
 void spi_send_cmd(unsigned char cmd, unsigned char data);
 void spi_send_cmd_top(unsigned char cmd, unsigned char data);
 void spi_send_cmd_bot(unsigned char cmd, unsigned char data);
