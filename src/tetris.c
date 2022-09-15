@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdlib.h>
 
 #include "audio_driver.h"
@@ -6,11 +7,44 @@
 #include "display_driver.h"
 
 #include "tetris.h"
+#include "display.h"
 #include "button_handler.h"
 #include "common.h"
 
 unsigned char board[ROWS][COLUMNS] = {0};
+unsigned char time_till_drop = 2;
 Tetronimo tetronimo = {0};
+
+static void init_tetronimo();
+static void drop(void);
+static void set_piece(unsigned char val);
+static unsigned char reached_bottom(void);
+static void shift_tetronimo_cw(void);
+static void rotate_tetronimo(unsigned char direction);
+ISR(TIMER1_COMPA_vect)
+{
+    // Audio functionality, switch to a different note based on tetris_melody
+    if(tetris_melody[note]) {
+	audio.change_note(tetris_melody[note]);
+    }
+
+    ++note;
+    if(note >= tetris_melody_length) {
+	note = 0;
+    }
+
+    // Drop a piece every 500 ms
+    if(!(--time_till_drop)) {
+	time_till_drop = 2;
+	if(reached_bottom()) {
+	    set_piece(2);
+	    init_tetronimo();
+	} else {
+	    drop();
+	}
+	update_display();
+    }
+}
 
 /**
  * init_adc()
@@ -31,7 +65,7 @@ void init_adc(void)
  * Generate a random tetronimo piece using ADC
  *
  * Return: void
- p*/
+ */
 static unsigned char gen_rand_tetronimo(void)
 {
     ADCSRA |= BIT6; // start conversion
@@ -39,6 +73,19 @@ static unsigned char gen_rand_tetronimo(void)
     while(ADCSRA & BIT6);
     srand(ADC);
     return rand()%7;
+}
+
+static void init_board(void)
+{
+    unsigned char val = 0;
+    for(unsigned char row=0; row < ROWS; ++row) {
+	if(row == ROWS-1) {
+	    val = 2;
+	}
+	for(unsigned char col = 0; col < COLUMNS; ++col) {
+	    board[row][col] = val;
+	}
+    }
 }
 
 /**
@@ -58,6 +105,13 @@ void init_tetris(void)
 
     // initializations in this module
     init_adc();
+
+    init_board();
+    init_tetronimo();
+    update_display();
+    rotate_tetronimo(1);
+    rotate_tetronimo(0);
+    audio.play();
 }
 
 /**
@@ -68,34 +122,41 @@ void init_tetris(void)
  *
  * Return: void
  */
-static void _set_tetronimo_start_pos(unsigned char c1_x, unsigned char c1_y,
-				     unsigned char c2_x, unsigned char c2_y,
-				     unsigned char c3_x, unsigned char c3_y,
-				     unsigned char c4_x, unsigned char c4_y)
+static void _set_tetronimo_start_pos(unsigned char c1_row, unsigned char c1_col,
+				     unsigned char c2_row, unsigned char c2_col,
+				     unsigned char c3_row, unsigned char c3_col,
+				     unsigned char c4_row, unsigned char c4_col)
 {
-    tetronimo.cent_x_coord = c3_x;
-    tetronimo.cent_y_coord = c3_y;
 
-    tetronimo.c1 = (Cell){.x=c1_x, .y=c1_y};
-    tetronimo.c2 = (Cell){.x=c2_x, .y=c2_y};
-    tetronimo.c3 = (Cell){.x=c3_x, .y=c3_y};
-    tetronimo.c4 = (Cell){.x=c4_x, .y=c4_y};
+    tetronimo.c1 = (Cell){.col=c1_col, .row=c1_row};
+    tetronimo.c2 = (Cell){.col=c2_col, .row=c2_row};
+    tetronimo.c3 = (Cell){.col=c3_col, .row=c3_row};
+    tetronimo.c4 = (Cell){.col=c4_col, .row=c4_row};
+
+    board[c1_row][c1_col] = 1;
+    board[c2_row][c2_col] = 1;
+    board[c3_row][c3_col] = 1;
+    board[c4_row][c4_col] = 1;
 }
 
 /**
  * init_tetronimo()
  *
+ * Create a new tetronimo piece and initialize its values.
+ *
  * Return: void
  */
 static void init_tetronimo()
 {
-    tetronimo.type = gen_rand_tetronimo();
+#warning change back
+    //tetronimo.type = gen_rand_tetronimo();
+    tetronimo.type = I_PIECE;
     tetronimo.rotation = ROT_0_DEG;
 
     // Set starting coordinates of center piece depending on tetronimo type
     switch(tetronimo.type) {
     case I_PIECE:
-	_set_tetronimo_start_pos(3,0, 3,1, 3,2, 3,3);
+	_set_tetronimo_start_pos(1,2, 1,3, 1,4, 1,5);
 	break;
     case O_PIECE:
 	_set_tetronimo_start_pos(3,2, 4,2, 3,3, 4,3);
@@ -115,64 +176,127 @@ static void init_tetronimo()
     }
 }
 
-/**
- * shift_tetronimo_ccw()
- * @x: x coord
- * @y: y coord
- *
- * Shift all cells in tetronimo (x,y) counterclockwise.
- * The formula is: x_new = y_old;
- *                 y_new = 1 - (x_old - (me - 2));
- * Variable _me_ is the maximum amount of cells the tetronimo takes up across an
- * axis.
- *
- * Return: void
- */
-static void shift_tetronimo_ccw()
+void rotate_I(unsigned char new_rotation);
+static void rotate_tetronimo(unsigned char direction)
 {
-    /* unsigned char x_old = tetronimo.c1.x; */
-    /* tetronimo.c1.x = tetronimo.c1.y; */
-    /* tetronimo.c1.y = 1 - (x_old - (tetronimo.me - 2)); */
+    // find new rotation
+    unsigned char rotation = tetronimo.rotation;
+    if(direction) {
+	++rotation;
+    } else {
+	--rotation;
+    }
 
-    /* x_old = tetronimo.c2.x; */
-    /* tetronimo.c2.x = tetronimo.c2.y; */
-    /* tetronimo.c2.y = 1 - (x_old - (tetronimo.me - 2)); */
+    //check if valid rotation state, since only 2 bits
+    if(rotation == ROT_OVER) {
+	rotation = ROT_0_DEG;
+    } else if(rotation == ROT_UNDER) {
+	rotation = ROT_270_DEG;
+    }
 
-    /* x_old = tetronimo.c3.x; */
-    /* tetronimo.c3.x = tetronimo.c3.y; */
-    /* tetronimo.c3.y = 1 - (x_old - (tetronimo.me - 2)); */
-
-    /* x_old = tetronimo.c4.x; */
-    /* tetronimo.c4.x = tetronimo.c4.y; */
-    /* tetronimo.c4.y = 1 - (x_old - (tetronimo.me - 2)); */
+    switch(tetronimo.type) {
+    case I_PIECE:
+	rotate_I(rotation);
+	break;
+    case O_PIECE:
+	break;
+    case T_PIECE:
+	break;
+    case Z_PIECE:
+	break;
+    case S_PIECE:
+	break;
+    case L_PIECE:
+	break;
+    case J_PIECE:
+	break;
+    }
 }
 
 /**
- * shift_tetronimo_cw()
+ * drop()
  *
- * Shift all cells in tetronimo (x,y) clockwise.
- * The formula is: x_new = 1 - (y_old - (me - 2));
- *                 y_new = x_old;
- * Variable _me_ is the maximum amount of cells the tetronimo takes up across an
- * axis.
+ * Drop the tetronimo one cell down.
  *
  * Return: void
  */
-static void shift_tetronimo_cw(void)
+static void drop(void)
 {
-    /* unsigned char y_old = tetronimo.c1.y; */
-    /* tetronimo.c1.y = tetronimo.c1.x; */
-    /* tetronimo.c1.x = 1 - (y_old - (tetronimo.me - 2)); */
+    set_piece(0);
 
-    /* y_old = tetronimo.c2.y; */
-    /* tetronimo.c2.y = tetronimo.c2.x; */
-    /* tetronimo.c2.x = 1 - (y_old - (tetronimo.me - 2)); */
+    board[++tetronimo.c1.row][tetronimo.c1.col] = 1;
+    board[++tetronimo.c2.row][tetronimo.c2.col] = 1;
+    board[++tetronimo.c3.row][tetronimo.c3.col] = 1;
+    board[++tetronimo.c4.row][tetronimo.c4.col] = 1;
+}
 
-    /* y_old = tetronimo.c3.y; */
-    /* tetronimo.c3.y = tetronimo.c3.x; */
-    /* tetronimo.c3.x = 1 - (y_old - (tetronimo.me - 2)); */
+/**
+ * set_piece()
+ *
+ * Set the piece if it has reached the bottom.
+ *
+ * Return: void
+ */
+static void set_piece(unsigned char val)
+{
+    board[tetronimo.c1.row][tetronimo.c1.col] = val;
+    board[tetronimo.c2.row][tetronimo.c2.col] = val;
+    board[tetronimo.c3.row][tetronimo.c3.col] = val;
+    board[tetronimo.c4.row][tetronimo.c4.col] = val;
+}
 
-    /* y_old = tetronimo.c4.y; */
-    /* tetronimo.c4.y = tetronimo.c4.x; */
-    /* tetronimo.c4.x = 1 - (y_old - (tetronimo.me - 2)); */
+static unsigned char reached_bottom(void)
+{
+    if(board[tetronimo.c1.row+1][tetronimo.c1.col] == 2 ||
+       board[tetronimo.c2.row+1][tetronimo.c2.col] == 2 ||
+       board[tetronimo.c3.row+1][tetronimo.c3.col] == 2 ||
+       board[tetronimo.c4.row+1][tetronimo.c4.col] == 2) {
+	return 1;
+    }
+    return 0;
+}
+
+static unsigned char valid_rotation(Tetronimo * const t_copy);
+void rotate_I(unsigned char new_rotation)
+{
+    Tetronimo t_copy = tetronimo;
+    switch(new_rotation) {
+    case ROT_0_DEG:;
+	Cell pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col};
+	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col-2};
+	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy.c3 = pivot;
+	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	break;
+    case ROT_90_DEG:;
+	pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
+	t_copy.c1 = (Cell){.row = pivot.row-2, .col = pivot.col};
+	t_copy.c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy.c3 = pivot;
+	t_copy.c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	break;
+    case ROT_180_DEG:
+	break;
+    case ROT_270_DEG:
+	break;
+    }
+
+    if(valid_rotation(&t_copy)) {
+	set_piece(0);
+	tetronimo = t_copy;
+	tetronimo.rotation = new_rotation;
+	set_piece(1);
+	update_display();
+    }
+}
+
+static unsigned char valid_rotation(Tetronimo * const t_copy)
+{
+    if(board[t_copy->c1.row][t_copy->c1.col] == 2 ||
+       board[t_copy->c2.row][t_copy->c2.col] == 2 ||
+       board[t_copy->c3.row][t_copy->c3.col] == 2 ||
+       board[t_copy->c4.row][t_copy->c4.col] == 2) {
+	return 0;
+	}
+    return 1;
 }

@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
+
 #include "bt_driver.h"
 #include "button_handler.h"
 #include "display_driver.h"
@@ -11,20 +12,6 @@
 
 #include "common.h"
 #include <util/delay.h>
-
-ISR(TIMER1_COMPA_vect)
-{
-    // Audio functionality, switch to a different note based on tetris_melody
-    if(tetris_melody[note]) {
-	audio.change_note(tetris_melody[note]);
-    }
-
-    ++note;
-    if(note >= tetris_melody_length) {
-	note = 0;
-    }
-    // Drop a piece every 500 ms
-}
 
 int main(void)
 {
