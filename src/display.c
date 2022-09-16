@@ -25,7 +25,7 @@ void update_display(void)
     // Update top led matrix
     unsigned char bit_form = 0x00;
     for(unsigned char row=DISP_START_ROW; row<DISP_TOP_END; ++row) {
-	for(char i=COLUMNS-1, j=0; i>=0; --i, ++j) { // convert to bitform
+	for(char i=DISP_END_COL-1, j=0; i>=DISP_START_COL; --i, ++j) { // convert to bitform
 	    bit_form |= (RETURN_SET(board[row][i]) << j);
 	}
 	display.spi_send_cmd_top(row-DISP_START_ROW+1, bit_form); // +1 since 0 is no-op
@@ -33,7 +33,7 @@ void update_display(void)
     }
     // Update bottom led matrix
     for(unsigned char row=DISP_TOP_END; row<DISP_BOT_END; ++row) {
-	for(char i=COLUMNS-1, j=0; i>=0; --i, ++j) { // convert to bitform
+	for(char i=DISP_END_COL-1, j=0; i>=DISP_START_COL; --i, ++j) { // convert to bitform
 	    bit_form |= (RETURN_SET(board[row][i]) << j);
 	}
 	display.spi_send_cmd_bot(row-DISP_TOP_END+1, bit_form); // +1 since 0 is no-op

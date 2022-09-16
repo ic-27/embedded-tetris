@@ -83,7 +83,11 @@ static void init_board(void)
 	    val = 2;
 	}
 	for(unsigned char col = 0; col < COLUMNS; ++col) {
-	    board[row][col] = val;
+	    if(col >= DISP_START_COL && col < DISP_END_COL) {
+		board[row][col] = val;
+	    } else {
+		board[row][col] = 2; // create a border around the display
+	    }
 	}
     }
 }
@@ -109,8 +113,8 @@ void init_tetris(void)
     init_board();
     init_tetronimo();
     update_display();
-    rotate_tetronimo(1);
-    rotate_tetronimo(0);
+    /* rotate_tetronimo(1); */
+    /* rotate_tetronimo(0); */
     audio.play();
 }
 
@@ -156,7 +160,7 @@ static void init_tetronimo()
     // Set starting coordinates of center piece depending on tetronimo type
     switch(tetronimo.type) {
     case I_PIECE:
-	_set_tetronimo_start_pos(1,2, 1,3, 1,4, 1,5);
+	_set_tetronimo_start_pos(1,4, 1,5, 1,6, 1,7);
 	break;
     case O_PIECE:
 	_set_tetronimo_start_pos(3,2, 4,2, 3,3, 4,3);

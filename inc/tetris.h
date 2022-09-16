@@ -2,7 +2,7 @@
 
 // Board
 #define ROWS    19 // 16 rows displayed, 2 extra above and 1 below for buffer
-#define COLUMNS 8  // 8 columns displayed, 4 extra on sides to easily check if valid rotation
+#define COLUMNS 12  // 8 columns displayed, 4 extra on sides to easily check if valid rotation
 
 // Tetris types
 #define NULL_PIECE 0
@@ -24,8 +24,11 @@
 
 // Tetris starting row
 #define DISP_START_ROW 2 // Rows 0-3 are where to initially place tetris piece
-#define DISP_TOP_END 10
-#define DISP_BOT_END 18
+#define DISP_TOP_END   10
+#define DISP_BOT_END   18
+#define DISP_START_COL 2
+#define DISP_END_COL   10
+
 
 typedef struct cell { // 2 bytes
     unsigned char row;
