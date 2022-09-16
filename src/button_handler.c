@@ -22,12 +22,12 @@ ISR(TIMER2_COMP_vect)
 {
     if(!(PINA & (1 << MOVE_LEFT)) && !delay_state[MOVE_LEFT_DEL])
 	{
-	    PORTD ^= (1 << PD2);
+	    move_left();
 	    delay_state[MOVE_LEFT_DEL] = 1;
 	}
     else if(!(PINA & (1 << MOVE_RIGHT)) && !delay_state[MOVE_RIGHT_DEL])
 	{
-	    PORTD ^= (1 << PD2);
+	    move_right();
 	    delay_state[MOVE_RIGHT_DEL] = 1;
 	}
     else if(!(PINA & (1 << ROTATE_LEFT)) && !delay_state[ROTATE_LEFT_DEL])
@@ -44,9 +44,13 @@ ISR(TIMER2_COMP_vect)
 	}
     else if(!(PINA & (1 << MOVE_DOWN)) && !delay_state[MOVE_DOWN_DEL])
 	{
-	    PORTD ^= (1 << PD2);
+	    fast_drop();
 	    delay_state[MOVE_DOWN_DEL] = 1;
 	}
+
+    if(PINA & (1 << MOVE_DOWN)) {
+	disable_fast_drop();
+    }
 
     // check if delay has ended
     if(delay_state[MOVE_LEFT_DEL] && delay_state[MOVE_LEFT_DEL] < DELAY) {

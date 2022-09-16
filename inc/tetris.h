@@ -34,6 +34,10 @@
 #define PIECE  1
 #define FILLED 2
 
+// Tetris drop control macros
+#define FAST_DROP   1
+#define NORMAL_DROP 2
+
 typedef struct cell { // 2 bytes
     unsigned char row;
     unsigned char col;
@@ -50,7 +54,8 @@ typedef struct tetronimo { // 10 bytes
 extern Tetronimo tetronimo;
 
 // Not memory efficient since we only use need 2 bits to store, but good enough.
-extern unsigned char time_till_drop;
+// We have plenty of RAM
+extern unsigned char time_till_drop_time;
 extern unsigned char board[ROWS][COLUMNS];
 
 void init_tetris(void);

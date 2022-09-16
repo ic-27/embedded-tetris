@@ -52,6 +52,73 @@ void drop(void)
 }
 
 /**
+ * move_left()
+ *
+ * Move tetronimo left.
+ *
+ * Return: void
+ */
+void move_left(void)
+{
+    if(board[tetronimo.c1.row][tetronimo.c1.col-1] == FILLED ||
+       board[tetronimo.c2.row][tetronimo.c2.col-1] == FILLED ||
+       board[tetronimo.c3.row][tetronimo.c3.col-1] == FILLED ||
+       board[tetronimo.c4.row][tetronimo.c4.col-1] == FILLED) {
+	return;
+    }
+    set_piece(EMPTY);
+
+    board[tetronimo.c1.row][--tetronimo.c1.col] = PIECE;
+    board[tetronimo.c2.row][--tetronimo.c2.col] = PIECE;
+    board[tetronimo.c3.row][--tetronimo.c3.col] = PIECE;
+    board[tetronimo.c4.row][--tetronimo.c4.col] = PIECE;
+
+    update_display();
+}
+
+/**
+ * move_right()
+ *
+ * Move tetronimo right.
+ *
+ * Return: void
+ */
+void move_right(void)
+{
+    if(board[tetronimo.c1.row][tetronimo.c1.col+1] == FILLED ||
+       board[tetronimo.c2.row][tetronimo.c2.col+1] == FILLED ||
+       board[tetronimo.c3.row][tetronimo.c3.col+1] == FILLED ||
+       board[tetronimo.c4.row][tetronimo.c4.col+1] == FILLED) {
+	return;
+    }
+    set_piece(EMPTY);
+
+    board[tetronimo.c1.row][++tetronimo.c1.col] = PIECE;
+    board[tetronimo.c2.row][++tetronimo.c2.col] = PIECE;
+    board[tetronimo.c3.row][++tetronimo.c3.col] = PIECE;
+    board[tetronimo.c4.row][++tetronimo.c4.col] = PIECE;
+
+    update_display();
+}
+
+/**
+ * fast_drop()
+ *
+ * Drop the tetronimo faster.
+ *
+ * Return: void
+ */
+void fast_drop(void)
+{
+    time_till_drop_time = FAST_DROP;
+}
+
+void disable_fast_drop(void)
+{
+    time_till_drop_time = NORMAL_DROP;
+}
+
+/**
  * valid_rotation()
  *
  * Check a tetris piece has a valid rotation.
@@ -175,3 +242,4 @@ void rotate_tetronimo(unsigned char direction)
 	update_display();
     }
 }
+

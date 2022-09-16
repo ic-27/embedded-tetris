@@ -12,9 +12,10 @@
 #include "button_handler.h"
 #include "common.h"
 
-unsigned char board[ROWS][COLUMNS] = {0};
-unsigned char time_till_drop = 2;
+static unsigned char time_till_drop = NORMAL_DROP;
 Tetronimo tetronimo = {0};
+unsigned char board[ROWS][COLUMNS] = {0};
+unsigned char time_till_drop_time = NORMAL_DROP; // so it can be controlled
 
 static void init_tetronimo();
 ISR(TIMER1_COMPA_vect)
@@ -31,7 +32,7 @@ ISR(TIMER1_COMPA_vect)
 
     // Drop a piece every 500 ms
     if(!(--time_till_drop)) {
-	time_till_drop = 2;
+	time_till_drop = time_till_drop_time;
 	if(reached_bottom()) {
 	    set_piece(FILLED);
 	    init_tetronimo();
