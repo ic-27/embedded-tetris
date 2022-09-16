@@ -12,10 +12,12 @@
 #include "button_handler.h"
 #include "common.h"
 
-static unsigned char time_till_drop = NORMAL_DROP;
+
+static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 Tetronimo tetronimo = {0};
+unsigned char time_till_drop_time = NORMAL_DROP;
 unsigned char board[ROWS][COLUMNS] = {0};
-unsigned char time_till_drop_time = NORMAL_DROP; // so it can be controlled
+
 
 /**
  * _set_tetronimo_start_pos()
@@ -53,7 +55,7 @@ static void init_tetronimo()
 {
 #warning change back
     //tetronimo.type = gen_rand_tetronimo();
-    tetronimo.type = I_PIECE;
+    tetronimo.type = O_PIECE;
     tetronimo.rotation = ROT_0_DEG;
 
     // Set starting coordinates of center piece depending on tetronimo type
@@ -62,7 +64,7 @@ static void init_tetronimo()
 	_set_tetronimo_start_pos(1,4, 1,5, 1,6, 1,7);
 	break;
     case O_PIECE:
-	_set_tetronimo_start_pos(3,2, 4,2, 3,3, 4,3);
+	_set_tetronimo_start_pos(0,5, 0,6, 1,5, 1,6);
 	break;
     case T_PIECE:
 	_set_tetronimo_start_pos(2,3, 3,2, 3,3, 4,3);
@@ -179,5 +181,3 @@ void init_tetris(void)
     update_display();
     audio.play();
 }
-
-
