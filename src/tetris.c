@@ -17,102 +17,6 @@ Tetronimo tetronimo = {0};
 unsigned char board[ROWS][COLUMNS] = {0};
 unsigned char time_till_drop_time = NORMAL_DROP; // so it can be controlled
 
-static void init_tetronimo();
-ISR(TIMER1_COMPA_vect)
-{
-    // Audio functionality, switch to a different note based on tetris_melody
-    if(tetris_melody[note]) {
-	audio.change_note(tetris_melody[note]);
-    }
-
-    ++note;
-    if(note >= tetris_melody_length) {
-	note = 0;
-    }
-
-    // Drop a piece every 500 ms
-    if(!(--time_till_drop)) {
-	time_till_drop = time_till_drop_time;
-	if(reached_bottom()) {
-	    set_piece(FILLED);
-	    init_tetronimo();
-	} else {
-	    drop();
-	}
-	update_display();
-    }
-}
-
-/**
- * init_adc()
- *
- * Initialize ADC for random tetronimo generation.
- *
- * Return: void
- */
-void init_adc(void)
-{
-    ADMUX  |= (1 << 6);
-    ADCSRA |= (1 << 7);
-}
-
-/**
- * gen_rand_tetronimo()
- *
- * Generate a random tetronimo piece using ADC
- *
- * Return: void
- */
-static unsigned char gen_rand_tetronimo(void)
-{
-    ADCSRA |= BIT6; // start conversion
-
-    while(ADCSRA & BIT6);
-    srand(ADC);
-    return rand()%7;
-}
-
-static void init_board(void)
-{
-    unsigned char val = 0;
-    for(unsigned char row=0; row < ROWS; ++row) {
-	if(row == ROWS-1) {
-	    val = 2;
-	}
-	for(unsigned char col = 0; col < COLUMNS; ++col) {
-	    if(col >= DISP_START_COL && col < DISP_END_COL) {
-		board[row][col] = val;
-	    } else {
-		board[row][col] = 2; // create a border around the display
-	    }
-	}
-    }
-}
-
-/**
- * init_tetris()
- *
- * Initialize all the different peripherals.
- *
- * Return: void
- */
-void init_tetris(void)
-{
-    // initialization of drivers
-    display.init();
-    audio.init();
-    button.init();
-    bluetooth.init();
-
-    // initializations in this module
-    init_adc();
-
-    init_board();
-    init_tetronimo();
-    update_display();
-    audio.play();
-}
-
 /**
  * _set_tetronimo_start_pos()
  *
@@ -174,3 +78,106 @@ static void init_tetronimo()
 	break;
     }
 }
+
+ISR(TIMER1_COMPA_vect)
+{
+    // Audio functionality, switch to a different note based on tetris_melody
+    if(tetris_melody[note]) {
+	audio.change_note(tetris_melody[note]);
+    }
+
+    ++note;
+    if(note >= tetris_melody_length) {
+	note = 0;
+    }
+
+    // Drop a piece every 500 ms
+    if(!(--time_till_drop)) {
+	time_till_drop = time_till_drop_time;
+	if(reached_bottom()) {
+	    set_piece(FILLED);
+	    init_tetronimo();
+	} else {
+	    drop();
+	}
+	update_display();
+    }
+}
+
+/**
+ * init_adc()
+ *
+ * Initialize ADC for random tetronimo generation.
+ *
+ * Return: void
+ */
+void init_adc(void)
+{
+    ADMUX  |= (1 << 6);
+    ADCSRA |= (1 << 7);
+}
+
+/**
+ * gen_rand_tetronimo()
+ *
+ * Generate a random tetronimo piece using ADC
+ *
+ * Return: void
+ */
+static unsigned char gen_rand_tetronimo(void)
+{
+    ADCSRA |= BIT6; // start conversion
+
+    while(ADCSRA & BIT6);
+    srand(ADC);
+    return rand()%7;
+}
+/**
+ * init_board()
+ *
+ * Initialize the board to be empty.
+ *
+ * Return: void
+ */
+static void init_board(void)
+{
+    unsigned char val = 0;
+    for(unsigned char row=0; row < ROWS; ++row) {
+	if(row == ROWS-1) {
+	    val = FILLED; // last row, so we don't need to reset val
+	}
+	for(unsigned char col = 0; col < COLUMNS; ++col) {
+	    if(col >= DISP_START_COL && col < DISP_END_COL) {
+		board[row][col] = val;
+	    } else {
+		board[row][col] = FILLED; // create a border around the display
+	    }
+	}
+    }
+}
+
+/**
+ * init_tetris()
+ *
+ * Initialize all the different peripherals.
+ *
+ * Return: void
+ */
+void init_tetris(void)
+{
+    // initialization of drivers
+    display.init();
+    audio.init();
+    button.init();
+    bluetooth.init();
+
+    // initializations in this module
+    init_adc();
+
+    init_board();
+    init_tetronimo();
+    update_display();
+    audio.play();
+}
+
+
