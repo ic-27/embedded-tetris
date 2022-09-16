@@ -1,12 +1,19 @@
 #include "tetris.h"
 #include "display.h"
 
+/**
+ * reached_bottom()
+ *
+ * Check if the tetronimo has reached the bottom yet
+ *
+ * Return: void
+ */
 unsigned char reached_bottom(void)
 {
-    if(board[tetronimo.c1.row+1][tetronimo.c1.col] == 2 ||
-       board[tetronimo.c2.row+1][tetronimo.c2.col] == 2 ||
-       board[tetronimo.c3.row+1][tetronimo.c3.col] == 2 ||
-       board[tetronimo.c4.row+1][tetronimo.c4.col] == 2) {
+    if(board[tetronimo.c1.row+1][tetronimo.c1.col] == FILLED ||
+       board[tetronimo.c2.row+1][tetronimo.c2.col] == FILLED ||
+       board[tetronimo.c3.row+1][tetronimo.c3.col] == FILLED ||
+       board[tetronimo.c4.row+1][tetronimo.c4.col] == FILLED) {
 	return 1;
     }
     return 0;
@@ -15,7 +22,7 @@ unsigned char reached_bottom(void)
 /**
  * set_piece()
  *
- * Set the piece if it has reached the bottom.
+ * Set the piece to clear the board, display a piece, or set it as filled.
  *
  * Return: void
  */
@@ -38,25 +45,25 @@ void drop(void)
 {
     set_piece(EMPTY);
 
-    board[++tetronimo.c1.row][tetronimo.c1.col] = 1;
-    board[++tetronimo.c2.row][tetronimo.c2.col] = 1;
-    board[++tetronimo.c3.row][tetronimo.c3.col] = 1;
-    board[++tetronimo.c4.row][tetronimo.c4.col] = 1;
+    board[++tetronimo.c1.row][tetronimo.c1.col] = PIECE;
+    board[++tetronimo.c2.row][tetronimo.c2.col] = PIECE;
+    board[++tetronimo.c3.row][tetronimo.c3.col] = PIECE;
+    board[++tetronimo.c4.row][tetronimo.c4.col] = PIECE;
 }
 
 /**
  * valid_rotation()
  *
  * Check a tetris piece has a valid rotation.
- * 
+ *
  * Return: void
  */
 unsigned char valid_rotation(Tetronimo * const t_copy)
 {
-    if(board[t_copy->c1.row][t_copy->c1.col] == 2 ||
-       board[t_copy->c2.row][t_copy->c2.col] == 2 ||
-       board[t_copy->c3.row][t_copy->c3.col] == 2 ||
-       board[t_copy->c4.row][t_copy->c4.col] == 2) {
+    if(board[t_copy->c1.row][t_copy->c1.col] == FILLED ||
+       board[t_copy->c2.row][t_copy->c2.col] == FILLED ||
+       board[t_copy->c3.row][t_copy->c3.col] == FILLED ||
+       board[t_copy->c4.row][t_copy->c4.col] == FILLED) {
 	return 0;
     }
     return 1;
@@ -71,66 +78,56 @@ unsigned char valid_rotation(Tetronimo * const t_copy)
  *
  * Return: void
  */
-void rotate_I(unsigned char new_rotation)
+void rotate_I(Tetronimo *t_copy, unsigned char new_rotation)
 {
-    Tetronimo t_copy = tetronimo;
     switch(new_rotation) {
     case ROT_0_DEG:; // Can't declare something after a label, interesting!
-	Cell pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col}; // covers ROT_90_DEG
+	Cell pivot = (Cell){.row = t_copy->c3.row-1, .col = t_copy->c3.col}; // covers ROT_90_DEG
 	if(tetronimo.rotation == ROT_270_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col+1};
+	    pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col+1};
 	}
 
-	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col-2};
-	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col-2};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c3 = pivot;
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
 	break;
     case ROT_90_DEG:
 	if(tetronimo.rotation == ROT_0_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
+	    pivot = (Cell){.row = t_copy->c3.row+1, .col = t_copy->c3.col};
 	} else if(tetronimo.rotation == ROT_180_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col+1};
+	    pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col+1};
 	}
 
-	t_copy.c1 = (Cell){.row = pivot.row-2, .col = pivot.col};
-	t_copy.c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c1 = (Cell){.row = pivot.row-2, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c3 = pivot;
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
 	break;
     case ROT_180_DEG:
 	if(tetronimo.rotation == ROT_90_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col-1};
+	    pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col-1};
 	} else if(tetronimo.rotation == ROT_270_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
+	    pivot = (Cell){.row = t_copy->c3.row+1, .col = t_copy->c3.col};
 	}
 
-	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col+2};
-	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col+2};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c3 = pivot;
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col-1};
 	break;
     case ROT_270_DEG:
 	if(tetronimo.rotation == ROT_0_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col-1};
+	    pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col-1};
 	} else if(tetronimo.rotation == ROT_180_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col};
+	    pivot = (Cell){.row = t_copy->c3.row-1, .col = t_copy->c3.col};
 	}
 
-	t_copy.c1 = (Cell){.row = pivot.row+2, .col = pivot.col};
-	t_copy.c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c1 = (Cell){.row = pivot.row+2, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c3 = pivot;
+	t_copy->c4 = (Cell){.row = pivot.row-1, .col = pivot.col};
 	break;
-    }
-
-#warning might be able to move this
-    if(valid_rotation(&t_copy)) {
-	set_piece(EMPTY);
-	tetronimo = t_copy;
-	tetronimo.rotation = new_rotation;
-	set_piece(PIECE);
-	update_display();
     }
 }
 
@@ -151,9 +148,10 @@ void rotate_tetronimo(unsigned char direction)
 	rotation = ROT_270_DEG;
     }
 
+    Tetronimo t_copy = tetronimo;
     switch(tetronimo.type) {
     case I_PIECE:
-	rotate_I(rotation);
+	rotate_I(&t_copy, rotation);
 	break;
     case O_PIECE:
 	break;
@@ -167,5 +165,13 @@ void rotate_tetronimo(unsigned char direction)
 	break;
     case J_PIECE:
 	break;
+    }
+
+    if(valid_rotation(&t_copy)) {
+	set_piece(EMPTY);
+	tetronimo = t_copy;
+	tetronimo.rotation = rotation;
+	set_piece(PIECE);
+	update_display();
     }
 }
