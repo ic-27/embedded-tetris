@@ -4,6 +4,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "button_handler.h"
+#include "movement.h"
 
 static unsigned char delayed = 0;
 static unsigned char delay_state[NUM_BUTTONS] = {0};
@@ -32,11 +33,13 @@ ISR(TIMER2_COMP_vect)
     else if(!(PINA & (1 << ROTATE_LEFT)) && !delay_state[ROTATE_LEFT_DEL])
 	{
 	    PORTD ^= (1 << PD2);
+	    rotate_tetronimo(0);
 	    delay_state[ROTATE_LEFT_DEL] = 1;
 	}
     else if(!(PINA & (1 << ROTATE_RIGHT)) && !delay_state[ROTATE_RIGHT_DEL])
 	{
 	    PORTD ^= (1 << PD2);
+	    rotate_tetronimo(1);
 	    delay_state[ROTATE_RIGHT_DEL] = 1;
 	}
     else if(!(PINA & (1 << MOVE_DOWN)) && !delay_state[MOVE_DOWN_DEL])

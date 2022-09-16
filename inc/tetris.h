@@ -29,6 +29,10 @@
 #define DISP_START_COL 2
 #define DISP_END_COL   10
 
+// Tetris board array elements
+#define EMPTY  0
+#define PIECE  1
+#define FILLED 2
 
 typedef struct cell { // 2 bytes
     unsigned char row;
@@ -43,6 +47,7 @@ typedef struct tetronimo { // 10 bytes
     Cell c3; // the pivot point of the tetronimo, for easy rotation
     Cell c4;
 } Tetronimo;
+extern Tetronimo tetronimo;
 
 // Not memory efficient since we only use need 2 bits to store, but good enough.
 extern unsigned char time_till_drop;

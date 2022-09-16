@@ -9,7 +9,7 @@ OUTPUT=main.elf
 PORT=/dev/ttyACM0
 
 all: main.c drivers/src/display_driver.c
-	$(CC) -Os -mmcu=atmega32 -o $(OUTPUT) main.c drivers/src/audio_driver.c drivers/src/display_driver.c src/button_handler.c drivers/src/bt_driver.c src/tetris.c src/display.c $(INC_PARAMS) 
+	$(CC) -Os -mmcu=atmega32 -o $(OUTPUT) main.c drivers/src/audio_driver.c drivers/src/display_driver.c src/button_handler.c drivers/src/bt_driver.c src/tetris.c src/display.c src/movement.c $(INC_PARAMS) 
 upload: main.elf
 	avrdude -p m32 -P $(PORT) -c avrisp -b 19200 -U flash:w:$(OUTPUT)
 ext_clk: #check https://www.engbedded.com/fusecalc/

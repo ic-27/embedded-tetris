@@ -7,6 +7,7 @@
 #include "display_driver.h"
 
 #include "tetris.h"
+#include "movement.h"
 #include "display.h"
 #include "button_handler.h"
 #include "common.h"
@@ -16,11 +17,6 @@ unsigned char time_till_drop = 2;
 Tetronimo tetronimo = {0};
 
 static void init_tetronimo();
-static void drop(void);
-static void set_piece(unsigned char val);
-static unsigned char reached_bottom(void);
-static void shift_tetronimo_cw(void);
-static void rotate_tetronimo(unsigned char direction);
 ISR(TIMER1_COMPA_vect)
 {
     // Audio functionality, switch to a different note based on tetris_melody
@@ -37,7 +33,7 @@ ISR(TIMER1_COMPA_vect)
     if(!(--time_till_drop)) {
 	time_till_drop = 2;
 	if(reached_bottom()) {
-	    set_piece(2);
+	    set_piece(FILLED);
 	    init_tetronimo();
 	} else {
 	    drop();
@@ -113,8 +109,6 @@ void init_tetris(void)
     init_board();
     init_tetronimo();
     update_display();
-    rotate_tetronimo(0);
-    /* rotate_tetronimo(0); */
     audio.play();
 }
 
@@ -178,168 +172,4 @@ static void init_tetronimo()
     case J_PIECE:
 	break;
     }
-}
-
-void rotate_I(unsigned char new_rotation, unsigned char direction);
-static void rotate_tetronimo(unsigned char direction)
-{
-    // find new rotation
-    unsigned char rotation = tetronimo.rotation;
-    if(direction) {
-	++rotation;
-    } else {
-	--rotation;
-    }
-
-    //check if valid rotation state, since only 2 bits
-    if(rotation == ROT_OVER) {
-	rotation = ROT_0_DEG;
-    } else if(rotation == ROT_UNDER) {
-	rotation = ROT_270_DEG;
-    }
-
-    switch(tetronimo.type) {
-    case I_PIECE:
-	rotate_I(rotation, direction);
-	break;
-    case O_PIECE:
-	break;
-    case T_PIECE:
-	break;
-    case Z_PIECE:
-	break;
-    case S_PIECE:
-	break;
-    case L_PIECE:
-	break;
-    case J_PIECE:
-	break;
-    }
-}
-
-/**
- * drop()
- *
- * Drop the tetronimo one cell down.
- *
- * Return: void
- */
-static void drop(void)
-{
-    set_piece(0);
-
-    board[++tetronimo.c1.row][tetronimo.c1.col] = 1;
-    board[++tetronimo.c2.row][tetronimo.c2.col] = 1;
-    board[++tetronimo.c3.row][tetronimo.c3.col] = 1;
-    board[++tetronimo.c4.row][tetronimo.c4.col] = 1;
-}
-
-/**
- * set_piece()
- *
- * Set the piece if it has reached the bottom.
- *
- * Return: void
- */
-static void set_piece(unsigned char val)
-{
-    board[tetronimo.c1.row][tetronimo.c1.col] = val;
-    board[tetronimo.c2.row][tetronimo.c2.col] = val;
-    board[tetronimo.c3.row][tetronimo.c3.col] = val;
-    board[tetronimo.c4.row][tetronimo.c4.col] = val;
-}
-
-static unsigned char reached_bottom(void)
-{
-    if(board[tetronimo.c1.row+1][tetronimo.c1.col] == 2 ||
-       board[tetronimo.c2.row+1][tetronimo.c2.col] == 2 ||
-       board[tetronimo.c3.row+1][tetronimo.c3.col] == 2 ||
-       board[tetronimo.c4.row+1][tetronimo.c4.col] == 2) {
-	return 1;
-    }
-    return 0;
-}
-
-static unsigned char valid_rotation(Tetronimo * const t_copy);
-/**
- * rotate_I()
- * @new_rotation: New rotation to pivot to
- * @direction: Direction we are rotating in 
- *
- * Rotate an 'I' piece. Specifically for an 'I' piece, we need to know which
- * direction we are rotating in since the pivot point is in an awkward spot.
- *
- * Return: void
- */
-void rotate_I(unsigned char new_rotation, unsigned char direction)
-{
-    Tetronimo t_copy = tetronimo;
-    switch(new_rotation) {
-    case ROT_0_DEG:; // Can't declare something after a label, interesting!
-	Cell pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col}; // covers ROT_90_DEG
-	if(tetronimo.rotation == ROT_270_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col+1};
-	}
-
-	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col-2};
-	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
-	break;
-    case ROT_90_DEG:
-	if(tetronimo.rotation == ROT_0_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
-	} else if(tetronimo.rotation == ROT_180_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col+1};
-	}
-
-	t_copy.c1 = (Cell){.row = pivot.row-2, .col = pivot.col};
-	t_copy.c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
-	break;
-    case ROT_180_DEG:
-	if(tetronimo.rotation == ROT_90_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col-1};
-	} else if(tetronimo.rotation == ROT_270_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
-	}
-
-	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col+2};
-	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col-1};
-	break;
-    case ROT_270_DEG:
-	if(tetronimo.rotation == ROT_0_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col-1};
-	} else if(tetronimo.rotation == ROT_180_DEG) {
-	    pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col};
-	}
-
-	t_copy.c1 = (Cell){.row = pivot.row+2, .col = pivot.col};
-	t_copy.c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
-	t_copy.c3 = pivot;
-	t_copy.c4 = (Cell){.row = pivot.row-1, .col = pivot.col};
-	break;
-    }
-
-    if(valid_rotation(&t_copy)) {
-	set_piece(0);
-	tetronimo = t_copy;
-	tetronimo.rotation = new_rotation;
-	set_piece(1);
-	update_display();
-    }
-}
-
-static unsigned char valid_rotation(Tetronimo * const t_copy)
-{
-    if(board[t_copy->c1.row][t_copy->c1.col] == 2 ||
-       board[t_copy->c2.row][t_copy->c2.col] == 2 ||
-       board[t_copy->c3.row][t_copy->c3.col] == 2 ||
-       board[t_copy->c4.row][t_copy->c4.col] == 2) {
-	return 0;
-	}
-    return 1;
 }
