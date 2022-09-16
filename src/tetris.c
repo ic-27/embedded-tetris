@@ -113,7 +113,7 @@ void init_tetris(void)
     init_board();
     init_tetronimo();
     update_display();
-    /* rotate_tetronimo(1); */
+    rotate_tetronimo(0);
     /* rotate_tetronimo(0); */
     audio.play();
 }
@@ -180,7 +180,7 @@ static void init_tetronimo()
     }
 }
 
-void rotate_I(unsigned char new_rotation);
+void rotate_I(unsigned char new_rotation, unsigned char direction);
 static void rotate_tetronimo(unsigned char direction)
 {
     // find new rotation
@@ -200,7 +200,7 @@ static void rotate_tetronimo(unsigned char direction)
 
     switch(tetronimo.type) {
     case I_PIECE:
-	rotate_I(rotation);
+	rotate_I(rotation, direction);
 	break;
     case O_PIECE:
 	break;
@@ -261,27 +261,66 @@ static unsigned char reached_bottom(void)
 }
 
 static unsigned char valid_rotation(Tetronimo * const t_copy);
-void rotate_I(unsigned char new_rotation)
+/**
+ * rotate_I()
+ * @new_rotation: New rotation to pivot to
+ * @direction: Direction we are rotating in 
+ *
+ * Rotate an 'I' piece. Specifically for an 'I' piece, we need to know which
+ * direction we are rotating in since the pivot point is in an awkward spot.
+ *
+ * Return: void
+ */
+void rotate_I(unsigned char new_rotation, unsigned char direction)
 {
     Tetronimo t_copy = tetronimo;
     switch(new_rotation) {
-    case ROT_0_DEG:;
-	Cell pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col};
+    case ROT_0_DEG:; // Can't declare something after a label, interesting!
+	Cell pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col}; // covers ROT_90_DEG
+	if(tetronimo.rotation == ROT_270_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col+1};
+	}
+
 	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col-2};
 	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
 	t_copy.c3 = pivot;
 	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
 	break;
-    case ROT_90_DEG:;
-	pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
+    case ROT_90_DEG:
+	if(tetronimo.rotation == ROT_0_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
+	} else if(tetronimo.rotation == ROT_180_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col+1};
+	}
+
 	t_copy.c1 = (Cell){.row = pivot.row-2, .col = pivot.col};
 	t_copy.c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
 	t_copy.c3 = pivot;
 	t_copy.c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
 	break;
     case ROT_180_DEG:
+	if(tetronimo.rotation == ROT_90_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col-1};
+	} else if(tetronimo.rotation == ROT_270_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row+1, .col = t_copy.c3.col};
+	}
+
+	t_copy.c1 = (Cell){.row = pivot.row, .col = pivot.col+2};
+	t_copy.c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy.c3 = pivot;
+	t_copy.c4 = (Cell){.row = pivot.row, .col = pivot.col-1};
 	break;
     case ROT_270_DEG:
+	if(tetronimo.rotation == ROT_0_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row, .col = t_copy.c3.col-1};
+	} else if(tetronimo.rotation == ROT_180_DEG) {
+	    pivot = (Cell){.row = t_copy.c3.row-1, .col = t_copy.c3.col};
+	}
+
+	t_copy.c1 = (Cell){.row = pivot.row+2, .col = pivot.col};
+	t_copy.c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy.c3 = pivot;
+	t_copy.c4 = (Cell){.row = pivot.row-1, .col = pivot.col};
 	break;
     }
 
