@@ -31,7 +31,7 @@ int main(void)
 
     /* display.spi_send_cmd_top(OP_DIGIT2, 0x77); */
     //display.spi_send_cmd_bot(OP_DIGIT7, 0x7F);
-
+    DDRD |= (1 << PD2);
 
     for(;;) {
 	next_state_logic();

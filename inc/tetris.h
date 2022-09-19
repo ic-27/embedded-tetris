@@ -54,9 +54,10 @@ typedef struct tetronimo { // 10 bytes
 extern Tetronimo tetronimo;
 
 // Not memory efficient since we only use need 2 bits to store, but good enough.
-// We have plenty of RAM
-extern unsigned char time_till_drop_time;
+// We have plenty of RAM!
 extern unsigned char board[ROWS][COLUMNS];
+extern unsigned char time_till_drop_time;
+extern unsigned char lock;
 
 void init_tetris(void);
 void update_board(void);

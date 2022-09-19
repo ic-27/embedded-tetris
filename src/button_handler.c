@@ -3,6 +3,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "tetris.h"
 #include "button_handler.h"
 #include "movement.h"
 
@@ -20,33 +21,28 @@ static unsigned char delay_state[NUM_BUTTONS] = {0};
  */
 ISR(TIMER2_COMP_vect)
 {
-    if(!(PINA & (1 << MOVE_LEFT)) && !delay_state[MOVE_LEFT_DEL])
+    if(!(PINA & (1 << MOVE_LEFT)) && !delay_state[MOVE_LEFT_DEL] && !lock)
 	{
-	    PORTD ^= (1 << PD2);
 	    move_left();
 	    delay_state[MOVE_LEFT_DEL] = 1;
 	}
-    else if(!(PINA & (1 << MOVE_RIGHT)) && !delay_state[MOVE_RIGHT_DEL])
+    else if(!(PINA & (1 << MOVE_RIGHT)) && !delay_state[MOVE_RIGHT_DEL] && !lock)
 	{
-	    PORTD ^= (1 << PD2);
 	    move_right();
 	    delay_state[MOVE_RIGHT_DEL] = 1;
 	}
-    else if(!(PINA & (1 << ROTATE_LEFT)) && !delay_state[ROTATE_LEFT_DEL])
+    else if(!(PINA & (1 << ROTATE_LEFT)) && !delay_state[ROTATE_LEFT_DEL] && !lock)
 	{
-	    PORTD ^= (1 << PD2);
 	    rotate_tetronimo(0);
 	    delay_state[ROTATE_LEFT_DEL] = 1;
 	}
-    else if(!(PINA & (1 << ROTATE_RIGHT)) && !delay_state[ROTATE_RIGHT_DEL])
+    else if(!(PINA & (1 << ROTATE_RIGHT)) && !delay_state[ROTATE_RIGHT_DEL] && !lock)
 	{
-	    PORTD ^= (1 << PD2);
 	    rotate_tetronimo(1);
 	    delay_state[ROTATE_RIGHT_DEL] = 1;
 	}
-    else if(!(PINA & (1 << MOVE_DOWN)) && !delay_state[MOVE_DOWN_DEL])
+    else if(!(PINA & (1 << MOVE_DOWN)) && !delay_state[MOVE_DOWN_DEL] && !lock)
 	{
-	    PORTD ^= (1 << PD2);
 	    fast_drop();
 	    delay_state[MOVE_DOWN_DEL] = 1;
 	}

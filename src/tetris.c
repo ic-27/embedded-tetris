@@ -12,12 +12,12 @@
 #include "button_handler.h"
 #include "common.h"
 
+unsigned char lock = 0;
 static unsigned char next_state = 0;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 Tetronimo tetronimo = {0};
 unsigned char time_till_drop_time = NORMAL_DROP;
 unsigned char board[ROWS][COLUMNS] = {0};
-
 
 /**
  * _set_tetronimo_start_pos()
@@ -38,10 +38,7 @@ static void _set_tetronimo_start_pos(unsigned char c1_row, unsigned char c1_col,
     tetronimo.c3 = (Cell){.col=c3_col, .row=c3_row};
     tetronimo.c4 = (Cell){.col=c4_col, .row=c4_row};
 
-    board[c1_row][c1_col] = 1;
-    board[c2_row][c2_col] = 1;
-    board[c3_row][c3_col] = 1;
-    board[c4_row][c4_col] = 1;
+    set_piece(PIECE);
 }
 
 static void set_rand_seed(void)
@@ -73,7 +70,8 @@ static unsigned char gen_rand_tetronimo(void)
  */
 static void init_tetronimo()
 {
-    tetronimo.type = gen_rand_tetronimo();
+    //tetronimo.type = gen_rand_tetronimo();
+    tetronimo.type = J_PIECE;
     tetronimo.rotation = ROT_0_DEG;
 
     // Set starting coordinates of center piece depending on tetronimo type
@@ -94,7 +92,7 @@ static void init_tetronimo()
 	_set_tetronimo_start_pos(1,4, 1,5, 0,5, 0,6);
 	break;
     case L_PIECE:
-	_set_tetronimo_start_pos(1,4, 1,5, 1,6, 0,6);
+	_set_tetronimo_start_pos(1,4, 1,6, 1,5, 0,6);
 	break;
     case J_PIECE:
 	_set_tetronimo_start_pos(0,4, 1,4, 1,5, 1,6);
@@ -112,8 +110,7 @@ ISR(TIMER1_COMPA_vect)
 	audio.change_note(tetris_melody[note]);
     }
 
-    ++note;
-    if(note >= tetris_melody_length) {
+    if(++note >= tetris_melody_length) {
 	note = 0;
     }
 
@@ -134,6 +131,7 @@ void next_state_logic(void)
 {
     if(next_state) {
 	if(reached_bottom()) {
+	    lock = 1;
 	    set_piece(FILLED);
 	    clear_lines();
 	    if(check_game_over())
@@ -141,6 +139,7 @@ void next_state_logic(void)
 		    init_board();
 		}
 	    init_tetronimo();
+	    lock = 0;
 	} else {
 	    drop();
 	}
@@ -174,12 +173,11 @@ static void init_board(void)
 {
     unsigned char val = 0;
     for(unsigned char row=0; row < ROWS; ++row) {
-	if(row == ROWS-1) {
-	    val = FILLED; // last row, so we don't need to reset val
-	}
 	for(unsigned char col = 0; col < COLUMNS; ++col) {
-	    if(col >= DISP_START_COL && col < DISP_END_COL) {
-		board[row][col] = val;
+	    if(row == ROWS-1) {
+		board[row][col] = FILLED;
+	    } else if(col >= DISP_START_COL && col < DISP_END_COL) {
+		board[row][col] = EMPTY;;
 	    } else {
 		board[row][col] = FILLED; // create a border around the display
 	    }
@@ -247,7 +245,7 @@ void clear_row(unsigned char row)
 
 /**
  * shift_row()
- * @row: 
+ * @row:
  *
  * Return: void
  */
@@ -293,7 +291,7 @@ unsigned char check_game_over(void)
     for(unsigned char row = 0; row < DISP_START_ROW; ++row) {
 	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col)
 	    {
-		if(board[row][col] == FILLED) {
+		if(FILLED == board[row][col]) {
 		    return 1;
 		}
 	    }
