@@ -138,6 +138,7 @@ unsigned char valid_rotation(Tetronimo * const t_copy)
 
 /**
  * rotate_I()
+ * @t_copy: Pointer to a tetronimo struct used to check if rotation is valid
  * @new_rotation: New rotation to pivot to
  *
  * Rotate an 'I' piece. Specifically for an 'I' piece, we need to know which
@@ -197,6 +198,185 @@ void rotate_I(Tetronimo *t_copy, unsigned char new_rotation)
 	break;
     }
 }
+/**
+ * rotate_T()
+ * @t_copy: Pointer to a tetronimo struct used to check if rotation is valid
+ * @new_rotation: New rotation to pivot to
+ *
+ * Rotate a 'T' piece.
+ *
+ * Return: void
+ */
+void rotate_T(Tetronimo *t_copy, unsigned char new_rotation)
+{
+    Cell pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col};
+    switch(new_rotation) {
+    case ROT_0_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	break;
+    case ROT_90_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	break;
+    case ROT_180_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	break;
+    case ROT_270_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c4 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	break;
+    }
+}
+
+/**
+ * rotate_Z()
+ * @t_copy: Pointer to a tetronimo struct used to check if rotation is valid
+ * @new_rotation: New rotation to pivot to
+ *
+ * Rotate a 'Z' piece.
+ *
+ * Return: void
+ */
+void rotate_Z(Tetronimo *t_copy, unsigned char new_rotation)
+{
+    Cell pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col};
+    switch(new_rotation) {
+    case ROT_0_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	break;
+    case ROT_90_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col+1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	break;
+    case ROT_180_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row+1, .col = pivot.col+1};
+	t_copy->c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	break;
+    case ROT_270_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row+1, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c4 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	break;
+    }
+}
+
+/**
+ * rotate_S()
+ * @t_copy: Pointer to a tetronimo struct used to check if rotation is valid
+ * @new_rotation: New rotation to pivot to
+ *
+ * Rotate a 'S' piece.
+ *
+ * Return: void
+ */
+void rotate_S(Tetronimo *t_copy, unsigned char new_rotation)
+{
+    Cell pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col};
+    switch(new_rotation) {
+    case ROT_0_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row-1, .col = pivot.col+1};
+	break;
+    case ROT_90_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col+1};
+	break;
+    case ROT_180_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row+1, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	break;
+    case ROT_270_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	break;
+    }
+}
+
+/**
+ * rotate_L()
+ * @t_copy: Pointer to a tetronimo struct used to check if rotation is valid
+ * @new_rotation: New rotation to pivot to
+ *
+ * Rotate a 'L' piece.
+ *
+ * Return: void
+ */
+void rotate_L(Tetronimo *t_copy, unsigned char new_rotation)
+{
+    Cell pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col};
+    switch(new_rotation) {
+    case ROT_0_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c4 = (Cell){.row = pivot.row-1, .col = pivot.col+1};
+	break;
+    case ROT_90_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col+1};
+	break;
+    case ROT_180_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col-1};
+	break;
+    case ROT_270_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	break;
+    }
+}
+
+/**
+ * rotate_J()
+ * @t_copy: Pointer to a tetronimo struct used to check if rotation is valid
+ * @new_rotation: New rotation to pivot to
+ *
+ * Rotate a 'J' piece.
+ *
+ * Return: void
+ */
+void rotate_J(Tetronimo *t_copy, unsigned char new_rotation)
+{
+    Cell pivot = (Cell){.row = t_copy->c3.row, .col = t_copy->c3.col};
+    switch(new_rotation) {
+    case ROT_0_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c4 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	break;
+    case ROT_90_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col+1};
+	t_copy->c2 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	break;
+    case ROT_180_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row, .col = pivot.col-1};
+	t_copy->c2 = (Cell){.row = pivot.row, .col = pivot.col+1};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col+1};
+	break;
+    case ROT_270_DEG:
+	t_copy->c1 = (Cell){.row = pivot.row-1, .col = pivot.col};
+	t_copy->c2 = (Cell){.row = pivot.row+1, .col = pivot.col};
+	t_copy->c4 = (Cell){.row = pivot.row+1, .col = pivot.col-1};
+	break;
+    }
+}
 
 void rotate_tetronimo(unsigned char direction)
 {
@@ -223,14 +403,19 @@ void rotate_tetronimo(unsigned char direction)
     case O_PIECE:
 	break;
     case T_PIECE:
+	rotate_T(&t_copy, rotation);
 	break;
     case Z_PIECE:
+	rotate_Z(&t_copy, rotation);
 	break;
     case S_PIECE:
+	rotate_S(&t_copy, rotation);
 	break;
     case L_PIECE:
+	rotate_L(&t_copy, rotation);
 	break;
     case J_PIECE:
+	rotate_J(&t_copy, rotation);
 	break;
     }
 

@@ -55,7 +55,7 @@ static void init_tetronimo()
 {
 #warning change back
     //tetronimo.type = gen_rand_tetronimo();
-    tetronimo.type = O_PIECE;
+    tetronimo.type = J_PIECE;
     tetronimo.rotation = ROT_0_DEG;
 
     // Set starting coordinates of center piece depending on tetronimo type
@@ -67,16 +67,19 @@ static void init_tetronimo()
 	_set_tetronimo_start_pos(0,5, 0,6, 1,5, 1,6);
 	break;
     case T_PIECE:
-	_set_tetronimo_start_pos(2,3, 3,2, 3,3, 4,3);
+	_set_tetronimo_start_pos(1,4, 0,5, 1,5, 1,6);
 	break;
     case Z_PIECE:
-	_set_tetronimo_start_pos(2,2, 3,2, 3,3, 4,3);
+	_set_tetronimo_start_pos(0,4, 0,5, 1,5, 1,6);
 	break;
     case S_PIECE:
+	_set_tetronimo_start_pos(1,4, 1,5, 0,5, 0,6);
 	break;
     case L_PIECE:
+	_set_tetronimo_start_pos(1,4, 1,5, 1,6, 0,6);
 	break;
     case J_PIECE:
+	_set_tetronimo_start_pos(0,4, 1,4, 1,5, 1,6);
 	break;
     }
 }
@@ -101,6 +104,7 @@ ISR(TIMER1_COMPA_vect)
 	    init_tetronimo();
 	} else {
 	    drop();
+	    // Check line filled
 	}
 	update_display();
     }
