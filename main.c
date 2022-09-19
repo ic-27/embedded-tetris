@@ -22,7 +22,6 @@ int main(void)
     /* audio.play(); */
     /* button.init(); */
 
-    DDRD |= (1 << PD2); // just for testing, delete later
     /* bluetooth.init(); */
 
     /* _delay_ms(500); */
@@ -33,9 +32,9 @@ int main(void)
     /* display.spi_send_cmd_top(OP_DIGIT2, 0x77); */
     //display.spi_send_cmd_bot(OP_DIGIT7, 0x7F);
 
-    update_display();
 
     for(;;) {
+	next_state_logic();
 	/* uart_tx('1'); */
 	/* _delay_ms(250); */
 

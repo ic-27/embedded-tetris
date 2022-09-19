@@ -60,5 +60,5 @@ extern unsigned char board[ROWS][COLUMNS];
 
 void init_tetris(void);
 void update_board(void);
-
+void next_state_logic(void);
 #endif

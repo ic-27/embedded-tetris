@@ -12,7 +12,7 @@
 #include "button_handler.h"
 #include "common.h"
 
-
+static unsigned char next_state = 0;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 Tetronimo tetronimo = {0};
 unsigned char time_till_drop_time = NORMAL_DROP;
@@ -44,6 +44,26 @@ static void _set_tetronimo_start_pos(unsigned char c1_row, unsigned char c1_col,
     board[c4_row][c4_col] = 1;
 }
 
+static void set_rand_seed(void)
+{
+    ADCSRA |= BIT6; // start conversion
+
+    while(ADCSRA & BIT6);
+    srand(ADC);
+}
+
+/**
+ * gen_rand_tetronimo()
+ *
+ * Generate a random tetronimo piece using ADC as seed.
+ *
+ * Return: void
+ */
+static unsigned char gen_rand_tetronimo(void)
+{
+    return rand()%7;
+}
+
 /**
  * init_tetronimo()
  *
@@ -53,9 +73,7 @@ static void _set_tetronimo_start_pos(unsigned char c1_row, unsigned char c1_col,
  */
 static void init_tetronimo()
 {
-#warning change back
-    //tetronimo.type = gen_rand_tetronimo();
-    tetronimo.type = J_PIECE;
+    tetronimo.type = gen_rand_tetronimo();
     tetronimo.rotation = ROT_0_DEG;
 
     // Set starting coordinates of center piece depending on tetronimo type
@@ -84,6 +102,9 @@ static void init_tetronimo()
     }
 }
 
+static void init_board(void);
+void clear_lines(void);
+unsigned char check_game_over(void);
 ISR(TIMER1_COMPA_vect)
 {
     // Audio functionality, switch to a different note based on tetris_melody
@@ -99,16 +120,35 @@ ISR(TIMER1_COMPA_vect)
     // Drop a piece every 500 ms
     if(!(--time_till_drop)) {
 	time_till_drop = time_till_drop_time;
+	next_state = 1;
+    }
+}
+
+/**
+ * next_state_logic()
+ *
+ * Called every time TIMER1 interrupt 1 sets the next_state var.
+ * The ISR is what sets the pace of the game.
+ */
+void next_state_logic(void)
+{
+    if(next_state) {
 	if(reached_bottom()) {
 	    set_piece(FILLED);
+	    clear_lines();
+	    if(check_game_over())
+		{
+		    init_board();
+		}
 	    init_tetronimo();
 	} else {
 	    drop();
-	    // Check line filled
 	}
 	update_display();
+	next_state = 0;
     }
 }
+
 
 /**
  * init_adc()
@@ -123,21 +163,6 @@ void init_adc(void)
     ADCSRA |= (1 << 7);
 }
 
-/**
- * gen_rand_tetronimo()
- *
- * Generate a random tetronimo piece using ADC
- *
- * Return: void
- */
-static unsigned char gen_rand_tetronimo(void)
-{
-    ADCSRA |= BIT6; // start conversion
-
-    while(ADCSRA & BIT6);
-    srand(ADC);
-    return rand()%7;
-}
 /**
  * init_board()
  *
@@ -162,6 +187,7 @@ static void init_board(void)
     }
 }
 
+static void set_rand_seed(void);
 /**
  * init_tetris()
  *
@@ -179,9 +205,98 @@ void init_tetris(void)
 
     // initializations in this module
     init_adc();
+    set_rand_seed();
 
     init_board();
     init_tetronimo();
     update_display();
     audio.play();
+}
+
+/**
+ * check_row_filled()
+ * @row: Row this function will be checking if full
+ *
+ * Return: 'bool' of whether it is filled or not
+ */
+unsigned char row_filled(unsigned char row)
+{
+    for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	if(board[row][col] != FILLED) {
+	    return 0;
+	}
+    }
+    return 1;
+
+}
+
+/**
+ * clear_row()
+ * @row: Row this function will clear
+ *
+ * Clear all the columns in this row.
+ *
+ * Return: void
+ */
+void clear_row(unsigned char row)
+{
+    for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	board[row][col] = EMPTY;
+    }
+}
+
+/**
+ * shift_row()
+ * @row: 
+ *
+ * Return: void
+ */
+void shift_row(unsigned char t_row)
+{
+    for(unsigned char row = t_row-1; row >= DISP_START_ROW; --row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    if(board[row][col] == FILLED) {
+		board[row][col] = EMPTY;
+		board[row+1][col] = FILLED;
+	    }
+	}
+    }
+}
+
+/**
+ * clear_lines()
+ *
+ * If any lines are filled (same line 8 cols filled), clear them.
+ * If none, do nothing.
+ *
+ * Return: void
+ */
+void clear_lines(void)
+{
+
+    for(unsigned char row = DISP_START_ROW; row < DISP_BOT_END; ++row) {
+	if(row_filled(row)) {
+	    clear_row(row);
+	    shift_row(row);
+	}
+    }
+}
+
+/**
+ * check_game_over()
+ *
+ * Return: 'bool' of whether game over or not
+ */
+unsigned char check_game_over(void)
+{
+    // If anything filled in the buffer, game over!
+    for(unsigned char row = 0; row < DISP_START_ROW; ++row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col)
+	    {
+		if(board[row][col] == FILLED) {
+		    return 1;
+		}
+	    }
+    }
+    return 0;
 }
