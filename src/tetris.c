@@ -13,10 +13,10 @@
 #include "common.h"
 
 unsigned char lock = 0;
-static unsigned char next_state = 0;
+static volatile unsigned char next_state = 0;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
-Tetronimo tetronimo = {0};
 unsigned char time_till_drop_time = NORMAL_DROP;
+Tetronimo tetronimo = {0};
 unsigned char board[ROWS][COLUMNS] = {0};
 
 /**
@@ -58,7 +58,11 @@ static void set_rand_seed(void)
  */
 static unsigned char gen_rand_tetronimo(void)
 {
-    return rand()%7;
+    ADCSRA |= BIT6; // start conversion
+
+    while(ADCSRA & BIT6);
+    return ADC%6;
+    //return rand()%7;
 }
 
 /**
@@ -70,32 +74,34 @@ static unsigned char gen_rand_tetronimo(void)
  */
 static void init_tetronimo()
 {
-    //tetronimo.type = gen_rand_tetronimo();
-    tetronimo.type = J_PIECE;
+    tetronimo.type = gen_rand_tetronimo();
     tetronimo.rotation = ROT_0_DEG;
 
     // Set starting coordinates of center piece depending on tetronimo type
     switch(tetronimo.type) {
     case I_PIECE:
-	_set_tetronimo_start_pos(1,4, 1,5, 1,6, 1,7);
+	_set_tetronimo_start_pos(1,5, 1,6, 1,7, 1,8);
 	break;
     case O_PIECE:
-	_set_tetronimo_start_pos(0,5, 0,6, 1,5, 1,6);
+	_set_tetronimo_start_pos(0,6, 0,7, 1,6, 1,7);
 	break;
     case T_PIECE:
-	_set_tetronimo_start_pos(1,4, 0,5, 1,5, 1,6);
+	_set_tetronimo_start_pos(1,5, 0,6, 1,6, 1,7);
 	break;
     case Z_PIECE:
-	_set_tetronimo_start_pos(0,4, 0,5, 1,5, 1,6);
+	_set_tetronimo_start_pos(0,5, 0,6, 1,6, 1,7);
 	break;
     case S_PIECE:
-	_set_tetronimo_start_pos(1,4, 1,5, 0,5, 0,6);
+	_set_tetronimo_start_pos(1,5, 1,6, 0,6, 0,7);
 	break;
     case L_PIECE:
-	_set_tetronimo_start_pos(1,4, 1,6, 1,5, 0,6);
+	_set_tetronimo_start_pos(1,5, 1,7, 1,6, 0,7);
 	break;
     case J_PIECE:
-	_set_tetronimo_start_pos(0,4, 1,4, 1,5, 1,6);
+	_set_tetronimo_start_pos(0,5, 1,5, 1,6, 1,7);
+	break;
+    default:
+	PORTD ^= (1 << PD2);
 	break;
     }
 }
@@ -105,11 +111,10 @@ void clear_lines(void);
 unsigned char check_game_over(void);
 ISR(TIMER1_COMPA_vect)
 {
-    // Audio functionality, switch to a different note based on tetris_melody
+    //Audio functionality, switch to a different note based on tetris_melody
     if(tetris_melody[note]) {
 	audio.change_note(tetris_melody[note]);
     }
-
     if(++note >= tetris_melody_length) {
 	note = 0;
     }
@@ -130,15 +135,15 @@ ISR(TIMER1_COMPA_vect)
 void next_state_logic(void)
 {
     if(next_state) {
-	if(reached_bottom()) {
+	if(reached_bottom() == 1) {
 	    lock = 1;
 	    set_piece(FILLED);
 	    clear_lines();
-	    if(check_game_over())
-		{
-		    init_board();
-		}
+	    if(check_game_over()) {
+		init_board();
+	    }
 	    init_tetronimo();
+
 	    lock = 0;
 	} else {
 	    drop();
@@ -147,7 +152,6 @@ void next_state_logic(void)
 	next_state = 0;
     }
 }
-
 
 /**
  * init_adc()
@@ -171,13 +175,12 @@ void init_adc(void)
  */
 static void init_board(void)
 {
-    unsigned char val = 0;
     for(unsigned char row=0; row < ROWS; ++row) {
 	for(unsigned char col = 0; col < COLUMNS; ++col) {
 	    if(row == ROWS-1) {
 		board[row][col] = FILLED;
 	    } else if(col >= DISP_START_COL && col < DISP_END_COL) {
-		board[row][col] = EMPTY;;
+		board[row][col] = EMPTY;
 	    } else {
 		board[row][col] = FILLED; // create a border around the display
 	    }
@@ -207,12 +210,11 @@ void init_tetris(void)
 
     init_board();
     init_tetronimo();
-    update_display();
     audio.play();
 }
 
 /**
- * check_row_filled()
+ * row_filled()
  * @row: Row this function will be checking if full
  *
  * Return: 'bool' of whether it is filled or not
@@ -225,7 +227,6 @@ unsigned char row_filled(unsigned char row)
 	}
     }
     return 1;
-
 }
 
 /**
@@ -271,7 +272,6 @@ void shift_row(unsigned char t_row)
  */
 void clear_lines(void)
 {
-
     for(unsigned char row = DISP_START_ROW; row < DISP_BOT_END; ++row) {
 	if(row_filled(row)) {
 	    clear_row(row);

@@ -26,15 +26,15 @@ unsigned char uart_rx(void)
     return UDR;
 }
 
-void bluetooth_on(void)
-{
-    PORTD |= (1 << PD6);
-}
+/* void bluetooth_on(void) */
+/* { */
+/*     PORTD |= (1 << PD6); */
+/* } */
 
-void bluetooth_off(void)
-{
-    PORTD &= ~(1 << PD6);
-}
+/* void bluetooth_off(void) */
+/* { */
+/*     PORTD &= ~(1 << PD6); */
+/* } */
 
 Bluetooth bluetooth = {
     .init = &init_bluetooth,

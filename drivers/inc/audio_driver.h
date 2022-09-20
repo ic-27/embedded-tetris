@@ -49,7 +49,7 @@
 
 extern unsigned char note; // keep track of where we are in tetris_melody
 extern unsigned char tetris_melody[];
-const extern unsigned char tetris_melody_length;
+extern const unsigned char tetris_melody_length;
 
 typedef struct audio {
     void (*init)();

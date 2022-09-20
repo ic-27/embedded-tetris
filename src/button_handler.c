@@ -7,7 +7,6 @@
 #include "button_handler.h"
 #include "movement.h"
 
-static unsigned char delayed = 0;
 static unsigned char delay_state[NUM_BUTTONS] = {0};
 
 /**

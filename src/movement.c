@@ -67,7 +67,7 @@ void move_left(void)
    	return;
     }
     set_piece(EMPTY);
-
+    
     board[tetronimo.c1.row][--tetronimo.c1.col] = PIECE;
     board[tetronimo.c2.row][--tetronimo.c2.col] = PIECE;
     board[tetronimo.c3.row][--tetronimo.c3.col] = PIECE;
@@ -427,4 +427,3 @@ void rotate_tetronimo(unsigned char direction)
 	update_display();
     }
 }
-
