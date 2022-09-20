@@ -1,18 +1,19 @@
 #ifndef TETRIS_H
+#define TETRIS_H
 
 // Board
 #define ROWS    19 // 16 rows displayed, 2 extra above and 1 below for buffer
-#define COLUMNS 12  // 8 columns displayed, 4 extra on sides to easily check if valid rotation
+#define COLUMNS 14  // 8 columns displayed, 4 extra on sides to easily check if valid rotation
 
 // Tetris types
-#define NULL_PIECE 0
-#define I_PIECE    1
-#define O_PIECE    2
-#define T_PIECE    3
-#define Z_PIECE    4
-#define S_PIECE    5
-#define L_PIECE    6
-#define J_PIECE    7
+#define NUM_TETRIS_TYPES 6
+#define I_PIECE    0
+#define O_PIECE    1
+#define T_PIECE    2
+#define Z_PIECE    3
+#define S_PIECE    4
+#define L_PIECE    5
+#define J_PIECE    6
 
 // Tetris rotations
 #define ROT_UNDER   ((unsigned char)~0)
@@ -26,8 +27,8 @@
 #define DISP_START_ROW 2 // Rows 0-3 are where to initially place tetris piece
 #define DISP_TOP_END   10
 #define DISP_BOT_END   18
-#define DISP_START_COL 2
-#define DISP_END_COL   10
+#define DISP_START_COL 3
+#define DISP_END_COL   11
 
 // Tetris board array elements
 #define EMPTY  0
@@ -37,6 +38,10 @@
 // Tetris drop control macros
 #define FAST_DROP   1
 #define NORMAL_DROP 2
+
+// Tetris next move macros
+#define WAIT_NEXT_MOVE  0
+#define NEXT_MOVE_READY 1
 
 typedef struct cell { // 2 bytes
     unsigned char row;
@@ -58,8 +63,8 @@ extern Tetronimo tetronimo;
 extern unsigned char board[ROWS][COLUMNS];
 extern unsigned char time_till_drop_time;
 extern unsigned char lock;
-
+extern volatile unsigned char next_move;
 void init_tetris(void);
 void update_board(void);
-void next_state_logic(void);
+void next_move_logic(void);
 #endif

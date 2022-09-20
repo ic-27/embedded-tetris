@@ -13,7 +13,7 @@
 #include "common.h"
 
 unsigned char lock = 0;
-static volatile unsigned char next_state = 0;
+volatile unsigned char next_move = WAIT_NEXT_MOVE;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 unsigned char time_till_drop_time = NORMAL_DROP;
 Tetronimo tetronimo = {0};
@@ -32,7 +32,6 @@ static void _set_tetronimo_start_pos(unsigned char c1_row, unsigned char c1_col,
 				     unsigned char c3_row, unsigned char c3_col,
 				     unsigned char c4_row, unsigned char c4_col)
 {
-
     tetronimo.c1 = (Cell){.col=c1_col, .row=c1_row};
     tetronimo.c2 = (Cell){.col=c2_col, .row=c2_row};
     tetronimo.c3 = (Cell){.col=c3_col, .row=c3_row};
@@ -41,7 +40,14 @@ static void _set_tetronimo_start_pos(unsigned char c1_row, unsigned char c1_col,
     set_piece(PIECE);
 }
 
-static void set_rand_seed(void)
+/**
+ * adc_set_rand()
+ *
+ * Set the seed for random number from floating ADC voltage.
+ *
+ * Return: void
+ */
+static void adc_set_rand(void)
 {
     ADCSRA |= BIT6; // start conversion
 
@@ -58,11 +64,7 @@ static void set_rand_seed(void)
  */
 static unsigned char gen_rand_tetronimo(void)
 {
-    ADCSRA |= BIT6; // start conversion
-
-    while(ADCSRA & BIT6);
-    return ADC%6;
-    //return rand()%7;
+    return rand()%NUM_TETRIS_TYPES;
 }
 
 /**
@@ -101,6 +103,8 @@ static void init_tetronimo()
 	_set_tetronimo_start_pos(0,5, 1,5, 1,6, 1,7);
 	break;
     default:
+	// Debugging
+	DDRD |= (1 << PD2);
 	PORTD ^= (1 << PD2);
 	break;
     }
@@ -122,35 +126,33 @@ ISR(TIMER1_COMPA_vect)
     // Drop a piece every 500 ms
     if(!(--time_till_drop)) {
 	time_till_drop = time_till_drop_time;
-	next_state = 1;
+	next_move = NEXT_MOVE_READY;
     }
 }
 
 /**
- * next_state_logic()
+ * next_move_logic()
  *
- * Called every time TIMER1 interrupt 1 sets the next_state var.
+ * Called every time TIMER1 interrupt 1 sets the next_move var.
  * The ISR is what sets the pace of the game.
  */
-void next_state_logic(void)
+void next_move_logic(void)
 {
-    if(next_state) {
-	if(reached_bottom() == 1) {
-	    lock = 1;
-	    set_piece(FILLED);
-	    clear_lines();
-	    if(check_game_over()) {
-		init_board();
-	    }
-	    init_tetronimo();
-
-	    lock = 0;
-	} else {
-	    drop();
+    if(reached_bottom() == 1) {
+	lock = 1;
+	set_piece(FILLED);
+	clear_lines();
+	if(check_game_over()) {
+	    init_board();
 	}
-	update_display();
-	next_state = 0;
+	init_tetronimo();
+
+	lock = 0;
+    } else {
+	drop();
     }
+    update_display();
+    next_move = WAIT_NEXT_MOVE;
 }
 
 /**
@@ -188,7 +190,6 @@ static void init_board(void)
     }
 }
 
-static void set_rand_seed(void);
 /**
  * init_tetris()
  *
@@ -206,7 +207,7 @@ void init_tetris(void)
 
     // initializations in this module
     init_adc();
-    set_rand_seed();
+    adc_set_rand();
 
     init_board();
     init_tetronimo();
