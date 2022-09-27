@@ -1,0 +1,2 @@
+This is an implementation of tetris on the atmega32-16PU microcontroller.
+It features audio (tetris theme song) through a piezoelectric buzzer, VS battle through bluetooth.
