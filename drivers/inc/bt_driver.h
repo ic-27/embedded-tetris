@@ -2,6 +2,7 @@
 #define BT_DRIVER_H
 
 #define BAUD_RATE 51 // 9600, see datasheet for table
+#define BT_PIN    PD4
 
 typedef struct bluetooth {
     void (*init)(void);

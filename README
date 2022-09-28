@@ -1,6 +1,32 @@
-This is an implementation of tetris on the atmega32-16PU microcontroller.
-It features audio (tetris theme song) through a piezoelectric buzzer, VS battle through bluetooth.
+This is an implementation of tetris on the atmega32-16PU microcontroller.  It
+features audio (tetris theme song) through a piezoelectric buzzer, VS battle
+through bluetooth.
 
 TODO:
 - Create a PCB
 - Add demonstration video
+
+Setting up Bluetooth:
+To set up the bluetooth such that they pair automatically to each other, you
+need to first put them AT command mode. This is done by setting the the enable
+pin of the HC-05 to a logic high. You should see the LED on the HC-05 blink very
+slowly, approximately every 5 seconds. After this upload an arduino with the
+sketch ./tools/bluetooth_command.ino and type in the corresponding commands into
+the serial monitor of the arduio IDE. If you have an alternative solution to
+this, use that. You don't have to have an arduino to do this. It is just that it
+is much easier.
+
+_MASTER_
+AT+ROLE?
+AT+ROLE=1
+AT+INQ // Get slave ADDR (slave needs to be on)
+AT+BIND=<SLAVE_ADDR> // Put slave ADDR, comma separated
+
+_SLAVE_
+AT+ROLE?
+AT+ROLE=0
+AT+INQ // Get master ADDR (master needs to be on)
+AT+BIND=<MASTER_ADDR>
+
+The HC-05 bluetooth module draws approximately 30mA-40mA, so watch out for the
+battery life.

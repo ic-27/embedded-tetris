@@ -104,8 +104,8 @@ static void init_tetronimo()
 	break;
     default:
 	// Debugging
-	DDRD |= (1 << PD2);
-	PORTD ^= (1 << PD2);
+	/* DDRD |= (1 << PD2); */
+	/* PORTD ^= (1 << PD2); */
 	break;
     }
 }
