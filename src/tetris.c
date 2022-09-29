@@ -13,6 +13,7 @@
 #include "common.h"
 
 unsigned char lock = 0;
+volatile unsigned char damage = 0;
 volatile unsigned char next_move = WAIT_NEXT_MOVE;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 unsigned char time_till_drop_time = NORMAL_DROP;
@@ -104,8 +105,8 @@ static void init_tetronimo()
 	break;
     default:
 	// Debugging
-	DDRD |= (1 << PD2);
-	PORTD ^= (1 << PD2);
+	/* DDRD |= (1 << PD2); */
+	/* PORTD ^= (1 << PD2); */
 	break;
     }
 }
@@ -131,19 +132,115 @@ ISR(TIMER1_COMPA_vect)
 }
 
 /**
+ * topmost_filled_row()
+ *
+ * Return the topmost row that is filled.
+ * Note that the higher the row, the smaller the row number.
+ *
+ * Return: void
+ */
+static unsigned char topmost_filled_row(void)
+{
+    for(unsigned char row = DISP_START_ROW; row < DISP_BOT_END; ++row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    if(2 == board[row][col]) {
+		return row;
+	    }
+	}
+    }
+    return DISP_BOT_END; // no filled rows
+}
+
+/**
+ * gen_rand_column()
+ *
+ * Generate a random column.
+ *
+ * Return: A random column number within display limits
+ */
+static unsigned char gen_rand_column(void)
+{
+    return (rand()%NUM_COLUMNS_DISPLAYED)+DISP_START_COL;
+}
+
+/**
+ * add_damage()
+ * @tp_filled_row: topmost row number w/ a column filled
+ * @damage: Damage that was sent from other player
+ *
+ * Add damage to the board. If the row is out of bounds, then game over.
+ *
+ * Return: Returns bool of whether it was successful or not
+ */
+static unsigned char add_damage(unsigned char tp_filled_row, unsigned char damage)
+{
+    for(unsigned char row = tp_filled_row; row < DISP_BOT_END; ++row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    if(row-damage > DISP_BOT_END) { //catch case of trying to assign row less than 0
+		return 0;
+	    }
+	    board[row-damage][col] = board[row][col];
+	}
+    }
+    //since we shifted everything up by 'damage', fill the last 'damage' rows
+    unsigned char empty_col = gen_rand_column();
+    for(unsigned char row = DISP_BOT_END-1; row >= DISP_BOT_END-damage; --row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    if(col != empty_col) {
+		board[row][col] = FILLED;
+	    } else {
+		board[row][col] = EMPTY;
+	    }
+	}
+    }
+    return 1;
+}
+
+/**
+ * check_overlay()
+ *
+ * Check if the current tetris piece was overlayed on top of after damage
+ * shifted all the rows up.
+ *
+ * Return: bool if current tetris piece was overlayed
+ */
+static unsigned char check_overlay(void)
+{
+    if(FILLED == board[tetronimo.c1.row][tetronimo.c1.col] ||
+       FILLED == board[tetronimo.c2.row][tetronimo.c2.col] ||
+       FILLED == board[tetronimo.c3.row][tetronimo.c3.col] ||
+       FILLED == board[tetronimo.c4.row][tetronimo.c4.col]) {
+	return 1;
+    }
+    return 0;
+}
+
+/**
  * next_move_logic()
  *
  * Called every time TIMER1 interrupt 1 sets the next_move var.
- * The ISR is what sets the pace of the game.
+ * This function checks for game over conditions and handles logic for dropping
+ * the piece and receiving damage.
+ *
+ * Return: void
  */
 void next_move_logic(void)
 {
+    if(damage) { // check for any damage first if PVP
+	unsigned char tp_filled_row = topmost_filled_row();
+	if(!add_damage(tp_filled_row, damage) || check_overlay()) {
+	    init_board(); // game over, restart!
+	    init_tetronimo();
+	}
+	damage = 0;
+    }
+
     if(reached_bottom() == 1) {
 	lock = 1;
 	set_piece(FILLED);
 	clear_lines();
 	if(check_game_over()) {
-	    init_board();
+	    init_board(); // game over, restart!
 	}
 	init_tetronimo();
 
@@ -248,6 +345,8 @@ void clear_row(unsigned char row)
 /**
  * shift_row()
  * @row:
+ *
+ * Shift row down
  *
  * Return: void
  */

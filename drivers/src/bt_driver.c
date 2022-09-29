@@ -10,8 +10,8 @@ void init_bluetooth(void)
     UCSRB = (1<<RXEN)|(1<<TXEN) |(1<<RXCIE); // enable tx, rx, int
     UCSRC = (1<<URSEL) | (1<<UCSZ0)|(1<<UCSZ1); // async, 8-bit
 
-    DDRC |= (1 << PC0);
-    PORTC |= (1 << PC0);
+    DDRD  |= (1 << BT_PIN); // set up BT, controlled through npn transistor
+    bluetooth_on();
 }
 
 void uart_tx(char ch)
@@ -26,24 +26,39 @@ unsigned char uart_rx(void)
     return UDR;
 }
 
-/* void bluetooth_on(void) */
-/* { */
-/*     PORTD |= (1 << PD6); */
-/* } */
+void bluetooth_on(void)
+{
+    PORTD |= (1 << BT_PIN);
+}
 
-/* void bluetooth_off(void) */
-/* { */
-/*     PORTD &= ~(1 << PD6); */
-/* } */
+void bluetooth_off(void)
+{
+    PORTD &= ~(1 << BT_PIN);
+}
 
 Bluetooth bluetooth = {
     .init = &init_bluetooth,
-    .tx = &uart_tx,
-    .rx = &uart_rx
+    .tx   = &uart_tx,
+    .rx   = &uart_rx,
+    .on   = &bluetooth_on,
+    .off  = &bluetooth_off
 };
 
 ISR(USART_RXC_vect)
 {
     char c = bluetooth.rx();
-    bluetooth.tx(c);
+
+    switch(c) {
+    case '4':
+	damage += 4;
+	break;
+    case '2':
+	damage += 2;
+	break;
+    case '1':
+	damage += 1;
+	break;
+    default:
+	break;
+    }
 }

@@ -1,7 +1,11 @@
 #ifndef BT_DRIVER_H
 #define BT_DRIVER_H
 
+#include "tetris.h"
+
 #define BAUD_RATE 51 // 9600, see datasheet for table
+#define BT_PIN    PD4
+#define UART_BUFFER_SIZE 3
 
 typedef struct bluetooth {
     void (*init)(void);

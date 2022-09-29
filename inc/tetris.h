@@ -5,6 +5,8 @@
 #define ROWS    19 // 16 rows displayed, 2 extra above and 1 below for buffer
 #define COLUMNS 14  // 8 columns displayed, 4 extra on sides to easily check if valid rotation
 
+#define NUM_COLUMNS_DISPLAYED 8
+
 // Tetris types
 #define NUM_TETRIS_TYPES 6
 #define I_PIECE    0
@@ -64,6 +66,7 @@ extern unsigned char board[ROWS][COLUMNS];
 extern unsigned char time_till_drop_time;
 extern unsigned char lock;
 extern volatile unsigned char next_move;
+extern volatile unsigned char damage; // how much damage opponent sent to you
 void init_tetris(void);
 void update_board(void);
 void next_move_logic(void);
