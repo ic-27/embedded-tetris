@@ -131,7 +131,14 @@ ISR(TIMER1_COMPA_vect)
     }
 }
 
-#warning fix condition for if there are no rows filled at all!
+/**
+ * topmost_filled_row()
+ *
+ * Return the topmost row that is filled.
+ * Note that the higher the row, the smaller the row number.
+ *
+ * Return: void
+ */
 static unsigned char topmost_filled_row(void)
 {
     for(unsigned char row = DISP_START_ROW; row < DISP_BOT_END; ++row) {
@@ -144,11 +151,25 @@ static unsigned char topmost_filled_row(void)
     return DISP_BOT_END; // no filled rows
 }
 
+/**
+ * gen_rand_column()
+ *
+ * Generate a random column.
+ *
+ * Return: A random column number within display limits
+ */
 static unsigned char gen_rand_column(void)
 {
-    return (rand()%8)+DISP_START_COL;
+    return (rand()%NUM_COLUMNS_DISPLAYED)+DISP_START_COL;
 }
 
+/**
+ * add_damage()
+ * @tp_filled_row: topmost row number w/ a column filled
+ * @damage: Damage that was sent from other player
+ *
+ * Return: void
+ */
 static void add_damage(unsigned char tp_filled_row, unsigned char damage)
 {
     for(unsigned char row = tp_filled_row; row < DISP_BOT_END; ++row) {
@@ -170,24 +191,42 @@ static void add_damage(unsigned char tp_filled_row, unsigned char damage)
 }
 
 /**
+ * check_overlay()
+ *
+ * Check if the current tetris piece was overlayed on top of after damage
+ * shifted all the rows up.
+ *
+ * Return: bool if current tetris piece was overlayed
+ */
+static unsigned char check_overlay(void)
+{
+    if(FILLED == board[tetronimo.c1.row][tetronimo.c1.col] ||
+       FILLED == board[tetronimo.c2.row][tetronimo.c2.col] ||
+       FILLED == board[tetronimo.c3.row][tetronimo.c3.col] ||
+       FILLED == board[tetronimo.c4.row][tetronimo.c4.col]) {
+	return 1;
+    }
+    return 0;
+}
+
+/**
  * next_move_logic()
  *
  * Called every time TIMER1 interrupt 1 sets the next_move var.
- * The ISR is what sets the pace of the game.
- *
+ * This function checks for game over conditions and handles logic for dropping
+ * the piece and receiving damage.
+ * 
  * Return: void
  */
 void next_move_logic(void)
 {
-    // check for any damage first if 2p
-    if(damage) {
-	// from top to bottom find row w/ something filled
-	// From the filled up row, move everything up by 'damage'
-	// Fill last 'damage' rows
-	// Check if the current tetronimo coincides with something that is filled
-	// If so game over
+    if(damage) { // check for any damage first if PVP
 	unsigned char tp_filled_row = topmost_filled_row();
 	add_damage(tp_filled_row, damage);
+	if(check_overlay()) {
+	    init_board(); // game over, restart!
+	    init_tetronimo();
+	}
 	damage = 0;
     }
 
@@ -196,7 +235,7 @@ void next_move_logic(void)
 	set_piece(FILLED);
 	clear_lines();
 	if(check_game_over()) {
-	    init_board();
+	    init_board(); // game over, restart!
 	}
 	init_tetronimo();
 

@@ -5,6 +5,8 @@
 #define ROWS    19 // 16 rows displayed, 2 extra above and 1 below for buffer
 #define COLUMNS 14  // 8 columns displayed, 4 extra on sides to easily check if valid rotation
 
+#define NUM_COLUMNS_DISPLAYED 8
+
 // Tetris types
 #define NUM_TETRIS_TYPES 6
 #define I_PIECE    0
