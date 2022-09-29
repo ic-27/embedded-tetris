@@ -11,7 +11,7 @@ void init_bluetooth(void)
     UCSRC = (1<<URSEL) | (1<<UCSZ0)|(1<<UCSZ1); // async, 8-bit
 
     DDRD  |= (1 << BT_PIN); // set up BT, controlled through npn transistor
-    bluetooth_off();
+    bluetooth_on();
 }
 
 void uart_tx(char ch)
@@ -46,6 +46,19 @@ Bluetooth bluetooth = {
 
 ISR(USART_RXC_vect)
 {
+    // wrong, will need a uart buffer, produce and consume at different rates
+    //unsigned char c = bluetooth.rx();
     char c = bluetooth.rx();
-    bluetooth.tx(c);
+    //bluetooth.tx(c); // testing
+    switch(c) {
+    case 4:
+	bluetooth.tx(0x34);
+	break;
+    case 2:
+	bluetooth.tx(0x32);
+	break;
+    default:
+	bluetooth.tx(0x31);
+	break;
+    }
 }
