@@ -168,12 +168,17 @@ static unsigned char gen_rand_column(void)
  * @tp_filled_row: topmost row number w/ a column filled
  * @damage: Damage that was sent from other player
  *
- * Return: void
+ * Add damage to the board. If the row is out of bounds, then game over.
+ *
+ * Return: Returns bool of whether it was successful or not
  */
-static void add_damage(unsigned char tp_filled_row, unsigned char damage)
+static unsigned char add_damage(unsigned char tp_filled_row, unsigned char damage)
 {
     for(unsigned char row = tp_filled_row; row < DISP_BOT_END; ++row) {
 	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    if(row-damage > DISP_BOT_END) { //catch case of trying to assign row less than 0
+		return 0;
+	    }
 	    board[row-damage][col] = board[row][col];
 	}
     }
@@ -188,6 +193,7 @@ static void add_damage(unsigned char tp_filled_row, unsigned char damage)
 	    }
 	}
     }
+    return 1;
 }
 
 /**
@@ -215,15 +221,14 @@ static unsigned char check_overlay(void)
  * Called every time TIMER1 interrupt 1 sets the next_move var.
  * This function checks for game over conditions and handles logic for dropping
  * the piece and receiving damage.
- * 
+ *
  * Return: void
  */
 void next_move_logic(void)
 {
     if(damage) { // check for any damage first if PVP
 	unsigned char tp_filled_row = topmost_filled_row();
-	add_damage(tp_filled_row, damage);
-	if(check_overlay()) {
+	if(!add_damage(tp_filled_row, damage) || check_overlay()) {
 	    init_board(); // game over, restart!
 	    init_tetronimo();
 	}

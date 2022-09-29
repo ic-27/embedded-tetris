@@ -3,6 +3,7 @@ features audio (tetris theme song) through a piezoelectric buzzer, VS battle
 through bluetooth.
 
 TODO:
+- Push up the tetris piece of shifting blocks up interferes with original position
 - Create a PCB
 - Add demonstration video
 
