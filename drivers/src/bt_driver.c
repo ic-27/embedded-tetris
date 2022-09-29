@@ -46,19 +46,19 @@ Bluetooth bluetooth = {
 
 ISR(USART_RXC_vect)
 {
-    // wrong, will need a uart buffer, produce and consume at different rates
-    //unsigned char c = bluetooth.rx();
     char c = bluetooth.rx();
-    //bluetooth.tx(c); // testing
+
     switch(c) {
-    case 4:
-	bluetooth.tx(0x34);
+    case '4':
+	damage += 4;
 	break;
-    case 2:
-	bluetooth.tx(0x32);
+    case '2':
+	damage += 2;
+	break;
+    case '1':
+	damage += 1;
 	break;
     default:
-	bluetooth.tx(0x31);
 	break;
     }
 }

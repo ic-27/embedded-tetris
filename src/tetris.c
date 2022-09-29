@@ -13,6 +13,7 @@
 #include "common.h"
 
 unsigned char lock = 0;
+volatile unsigned char damage = 0;
 volatile unsigned char next_move = WAIT_NEXT_MOVE;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 unsigned char time_till_drop_time = NORMAL_DROP;
@@ -130,14 +131,55 @@ ISR(TIMER1_COMPA_vect)
     }
 }
 
+#warning fix condition for if there are no rows filled at all!
+static unsigned char topmost_filled_row(void)
+{
+    for(unsigned char row = DISP_START_ROW; row < DISP_BOT_END; ++row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    if(2 == board[row][col]) {
+		return row;
+	    }
+	}
+    }
+}
+
+static void add_damage(unsigned char tp_filled_row, unsigned char damage)
+{
+    for(unsigned char row = tp_filled_row; row < DISP_BOT_END; ++row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    board[row-damage][col] = board[row][col];
+	}
+    }
+    // since we shifted everything up by 'damage', fill the last 'damage' rows
+    for(unsigned char row = DISP_BOT_END-1; row >= DISP_BOT_END-1-damage; --row) {
+	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
+	    board[row][col] = FILLED;
+	}
+    }
+}
+
 /**
  * next_move_logic()
  *
  * Called every time TIMER1 interrupt 1 sets the next_move var.
  * The ISR is what sets the pace of the game.
+ *
+ * Return: void
  */
 void next_move_logic(void)
 {
+    // check for any damage first if 2p
+    if(damage) {
+	// from top to bottom find row w/ something filled
+	// From the filled up row, move everything up by 'damage'
+	// Fill last 'damage' rows
+	// Check if the current tetronimo coincides with something that is filled
+	// If so game over
+	unsigned char tp_filled_row = topmost_filled_row();
+	add_damage(tp_filled_row, damage);
+	damage = 0;
+    }
+
     if(reached_bottom() == 1) {
 	lock = 1;
 	set_piece(FILLED);
@@ -248,6 +290,8 @@ void clear_row(unsigned char row)
 /**
  * shift_row()
  * @row:
+ *
+ * Shift row down
  *
  * Return: void
  */

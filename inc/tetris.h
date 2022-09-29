@@ -64,6 +64,7 @@ extern unsigned char board[ROWS][COLUMNS];
 extern unsigned char time_till_drop_time;
 extern unsigned char lock;
 extern volatile unsigned char next_move;
+extern volatile unsigned char damage; // how much damage opponent sent to you
 void init_tetris(void);
 void update_board(void);
 void next_move_logic(void);
