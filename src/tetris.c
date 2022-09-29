@@ -141,6 +141,12 @@ static unsigned char topmost_filled_row(void)
 	    }
 	}
     }
+    return DISP_BOT_END; // no filled rows
+}
+
+static unsigned char gen_rand_column(void)
+{
+    return (rand()%8)+DISP_START_COL;
 }
 
 static void add_damage(unsigned char tp_filled_row, unsigned char damage)
@@ -150,10 +156,15 @@ static void add_damage(unsigned char tp_filled_row, unsigned char damage)
 	    board[row-damage][col] = board[row][col];
 	}
     }
-    // since we shifted everything up by 'damage', fill the last 'damage' rows
-    for(unsigned char row = DISP_BOT_END-1; row >= DISP_BOT_END-1-damage; --row) {
+    //since we shifted everything up by 'damage', fill the last 'damage' rows
+    unsigned char empty_col = gen_rand_column();
+    for(unsigned char row = DISP_BOT_END-1; row >= DISP_BOT_END-damage; --row) {
 	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
-	    board[row][col] = FILLED;
+	    if(col != empty_col) {
+		board[row][col] = FILLED;
+	    } else {
+		board[row][col] = EMPTY;
+	    }
 	}
     }
 }

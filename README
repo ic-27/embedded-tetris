@@ -3,7 +3,6 @@ features audio (tetris theme song) through a piezoelectric buzzer, VS battle
 through bluetooth.
 
 TODO:
-- Add uart buffer
 - Create a PCB
 - Add demonstration video
 
