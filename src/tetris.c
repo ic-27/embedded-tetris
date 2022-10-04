@@ -174,9 +174,11 @@ static unsigned char gen_rand_column(void)
  */
 static unsigned char add_damage(unsigned char tp_filled_row, unsigned char damage)
 {
+    // Shift everything up by 'damage'
     for(unsigned char row = tp_filled_row; row < DISP_BOT_END; ++row) {
 	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
 	    if(row-damage > DISP_BOT_END) { //catch case of trying to assign row less than 0
+#warning make sure that this is correct...
 		return 0;
 	    }
 	    board[row-damage][col] = board[row][col];
@@ -216,6 +218,34 @@ static unsigned char check_overlay(void)
 }
 
 /**
+ * shift_tetris_piece_up()
+ *
+ * Shift the tetris piece up. This is used when we have received damage, but the
+ * current tetris piece will coincides if we have received the damage.
+ *
+ * Return: boolean of whether shift was successful or not.
+ */
+static unsigned char shift_tetris_piece_up(void)
+{
+    // Make sure we aren't shifting up into the buffer zone (row 0 & 1)
+    while(tetronimo.c1.row-1 >= DISP_START_ROW && tetronimo.c2.row-1 >= DISP_START_ROW &&
+	  tetronimo.c3.row-1 >= DISP_START_ROW && tetronimo.c4.row-1 >= DISP_START_ROW) {
+	--tetronimo.c1.row; --tetronimo.c2.row; --tetronimo.c3.row; --tetronimo.c4.row;
+	// Make sure the board is empty where we are shifting into
+	if(board[tetronimo.c1.row][tetronimo.c1.col] == EMPTY &&
+	   board[tetronimo.c2.row][tetronimo.c2.col] == EMPTY &&
+	   board[tetronimo.c3.row][tetronimo.c3.col] == EMPTY &&
+	   board[tetronimo.c4.row][tetronimo.c4.col] == EMPTY) {
+	    set_piece(PIECE);
+	    return 1;
+	    break;
+	}
+    }
+    set_piece(PIECE);
+    return 0;
+}
+
+/**
  * next_move_logic()
  *
  * Called every time TIMER1 interrupt 1 sets the next_move var.
@@ -228,9 +258,14 @@ void next_move_logic(void)
 {
     if(damage) { // check for any damage first if PVP
 	unsigned char tp_filled_row = topmost_filled_row();
-	if(!add_damage(tp_filled_row, damage) || check_overlay()) {
+	if(!add_damage(tp_filled_row, damage)) {
 	    init_board(); // game over, restart!
 	    init_tetronimo();
+	} else if(check_overlay()) {
+	    if(!shift_tetris_piece_up()) {
+		init_board(); // game over, restart!
+		init_tetronimo();
+	    }
 	}
 	damage = 0;
     }
