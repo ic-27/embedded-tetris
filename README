@@ -1,10 +1,16 @@
-This is an implementation of tetris on the atmega32-16PU microcontroller.  It
-features audio (tetris theme song) through a piezoelectric buzzer, VS battle
+This is an implementation of tetris on the Atmega32-16PU microcontroller. It
+features audio (tetris theme song) through a piezoelectric buzzer, and VS battle
 through bluetooth.
 
+The Atmega32-16PU microcontroller was programmed using an Arduino ISP. A link to
+the tutorial is here:
+https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
+
+
 TODO:
-- Push up the tetris piece of shifting blocks up interferes with original position
-- Make the fall rate faster upon down button
+- Push up the tetris piece of shifting blocks up interferes with original
+position
+- Automatically set up bluetooth
 - Add a start screen
 - Create a PCB
 - Add demonstration video

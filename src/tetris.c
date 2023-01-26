@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
 #include <stdlib.h>
 
 #include "audio_driver.h"
@@ -19,6 +20,10 @@ static unsigned char time_till_drop = NORMAL_DROP; // can change depending on ti
 unsigned char time_till_drop_time = NORMAL_DROP;
 Tetronimo tetronimo = {0};
 unsigned char board[ROWS][COLUMNS] = {0};
+
+
+void power_on(void);
+void power_off(void);
 
 /**
  * _set_tetronimo_start_pos()
@@ -111,12 +116,17 @@ static void init_tetronimo()
     }
 }
 
+static unsigned char power_state;
+static unsigned char power_button_trig;
+unsigned char check_power_state(void);
+void power_enable_int(void);
+
 static void init_board(void);
 void clear_lines(void);
 unsigned char check_game_over(void);
 ISR(TIMER1_COMPA_vect)
 {
-    //Audio functionality, switch to a different note based on tetris_melody
+    // Audio functionality, switch to a different note based on tetris_melody
     if(tetris_melody[note]) {
 	audio.change_note(tetris_melody[note]);
     }
@@ -143,7 +153,7 @@ static unsigned char topmost_filled_row(void)
 {
     for(unsigned char row = DISP_START_ROW; row < DISP_BOT_END; ++row) {
 	for(unsigned char col = DISP_START_COL; col < DISP_END_COL; ++col) {
-	    if(2 == board[row][col]) {
+	    if(FILLED == board[row][col]) {
 		return row;
 	    }
 	}
@@ -323,6 +333,111 @@ static void init_board(void)
 }
 
 /**
+ * power_init() - Init pin for power switch
+ *
+ * Return: void
+ */
+void power_init(void)
+{
+    DDRD |= (1 << 7); // debug
+	
+    DDRB &= ~(1 << 2); // Set INT2 to be input pull-up
+    PORTB |= (1 << 2);
+}   
+
+/**
+ * power_enable_int() - Enable interrupt for power pin
+ */
+void power_enable_int()
+{
+    GICR |= (1 << INT2);
+}
+
+/**
+ * External interrupt for detecting slide switch (power button)
+ */
+ISR(INT2_vect)
+{
+    power_button_trig = 1;
+    audio.start_clock();
+}
+
+/**
+ * check_power_state() - Check which state slide switch is flipped to
+ *
+ * Return: boolean of whether on/off
+ */
+unsigned char check_power_state(void)
+{
+    return !(PINB & (1 << 2));
+}
+
+/**
+ * power_on()
+ *
+ * Initialize modules upon a power on.
+ *
+ * Return: void
+ */
+void power_on(void)
+{
+    // config slide switch to look for rising edge
+    MCUCSR |= (1 << ISC2); 
+
+    // restart audio (timer)
+    audio.play();
+
+    // power on inits
+    init_board();
+    init_tetronimo();
+    display.init();
+    
+    power_enable_int();
+    power_button_trig = 0;
+}
+
+/**
+ * power_off()
+ *
+ * De-init modules upon a power off.
+ *
+ * Return: void
+ */
+void power_off(void)
+{
+    // config slide switch to look for falling edge
+    MCUCSR &= ~(1 << ISC2);
+
+    // stop software timers/interrupts
+    audio.stop();
+    audio.stop_clock(); // this line solves mystery current
+
+    // turn off MAX7219 to save power
+    display.off();
+
+    // power down de-inits
+    power_enable_int();
+    power_button_trig = 0;
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_mode();
+}
+
+void check_power_switch(void)
+{
+    // if power button triggered, check the state and turn on/off accordingly
+    if(power_button_trig) {
+	if(check_power_state()) {
+	    PORTD |= (1 << 7);
+	    power_on();
+	} else {
+	    PORTD &= ~(1 << 7);
+	    power_off();
+	}
+	
+    }
+}
+
+/**
  * init_tetris()
  *
  * Initialize all the different peripherals.
@@ -331,19 +446,28 @@ static void init_board(void)
  */
 void init_tetris(void)
 {
+    power_init(); // move later
+	
     // initialization of drivers
     display.init();
     audio.init();
     button.init();
     bluetooth.init();
-
+	
     // initializations in this module
     init_adc();
     adc_set_rand();
-
     init_board();
     init_tetronimo();
-    audio.play();
+
+    // check power on/off
+    if(check_power_state()) { // on
+	power_on();
+	audio.play();
+	audio.start_clock(); // bad coupling of different modules, but audio.play() starts the main timer for dropping blocks.
+    } else { // off
+	power_off();
+    }
 }
 
 /**

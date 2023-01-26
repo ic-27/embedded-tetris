@@ -42,6 +42,8 @@ typedef struct display {
     void (*spi_send_cmd_bot)(unsigned char cmd, unsigned char data);
     void (*spi_send_cmd_num)(unsigned char cmd, unsigned char data);
     void (*clear)(void);
+    void (*on)(void);
+    void (*off)(void);
 } Display;
 extern Display display;
 

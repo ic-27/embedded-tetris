@@ -18,8 +18,8 @@ void init_bluetooth(void)
     UCSRC = (1<<URSEL) | (1<<UCSZ0)|(1<<UCSZ1); // async, 8-bit
 
     DDRD  |= (1 << BT_PIN); // set up BT, controlled through npn transistor
-#warning Make sure to turn bluetooth_off at first
-    bluetooth_on();
+    //#warning Make sure to turn bluetooth_off at first
+    bluetooth_off();
 }
 
 /**
@@ -44,7 +44,7 @@ void uart_tx(char ch)
  */
 unsigned char uart_rx(void)
 {
-    while ((UCSRA & (1 << RXC)) == 0);/* Wait till data is received */
+    while ((UCSRA & (1 << RXC)) == 0); /* Wait till data is received */
     return UDR;
 }
 

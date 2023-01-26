@@ -18,7 +18,7 @@
 static void _spi_init(void)
 {
     // MSB, f_osc/2
-    DDRB = (1<<MOSI)|(1<<SCK)|(1<<SS);
+    DDRB |= (1<<MOSI)|(1<<SCK)|(1<<SS);
     SPCR = (1<<SPE)|(1<<MSTR);
     SPSR = (1<<SPI2X);
 }
@@ -161,11 +161,33 @@ void clear(void)
     spi_send_cmd_num(ROW7, 0x00);
 }
 
+/**
+ * off() - Turn the MAX7219 off. Save some power.
+ *
+ * Return: void
+ */
+void off(void)
+{
+	spi_send_cmd_num(OP_SHUTDOWN, 0);
+}
+
+/**
+ * on() - Turn the MAX7219 on.
+ *
+ * Return: void
+ */
+void on(void)
+{
+	spi_send_cmd_num(OP_SHUTDOWN, 1);
+}
+
 Display display = {
     .init = &init_display,
     .spi_send_cmd = &spi_send_cmd,
     .spi_send_cmd_top = &spi_send_cmd_top,
     .spi_send_cmd_bot = &spi_send_cmd_bot,
     .spi_send_cmd_num = &spi_send_cmd_num,
-    .clear = &clear
+    .clear = &clear,
+    .on = &off,
+    .off = &off
 };

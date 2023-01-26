@@ -55,6 +55,8 @@ typedef struct audio {
     void (*init)();
     void (*play)(void);
     void (*stop)(void);
+    void (*start_clock)(void);
+    void (*stop_clock)(void);
     void (*change_note)(unsigned char note);
 } Audio;
 extern Audio audio;

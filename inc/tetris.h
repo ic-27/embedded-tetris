@@ -70,4 +70,5 @@ extern volatile unsigned char damage; // how much damage opponent sent to you
 void init_tetris(void);
 void update_board(void);
 void next_move_logic(void);
+void check_power_switch(void);
 #endif
