@@ -109,6 +109,28 @@ void init_buttons(void)
     TIFR |= (1 << OCF2);
 }
 
+/**
+ * start_poll() - Start polling of button presses
+ *
+ * Return: void
+ */
+void start_poll(void)
+{
+    TCCR2 |= (1 << CS22) | (1 << CS21) | (1 << CS20);
+}
+
+/**
+ * stop_poll() - Stop polling of button presses
+ *
+ * Return: void
+ */
+void stop_poll(void)
+{
+    TCCR2 &= ~((1 << CS22) | (1 << CS21) | (1 << CS20));
+}
+
 Button button = {
-    .init = &init_buttons
+    .init = &init_buttons,
+    .start_poll = &start_poll,
+    .stop_poll = &stop_poll
 };

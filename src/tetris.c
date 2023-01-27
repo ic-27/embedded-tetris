@@ -347,6 +347,8 @@ void power_init(void)
 
 /**
  * power_enable_int() - Enable interrupt for power pin
+ *
+ * Return: void
  */
 void power_enable_int()
 {
@@ -354,12 +356,24 @@ void power_enable_int()
 }
 
 /**
+ * power_disable_int() - Enable interrupt for power pin
+ *
+ * Return: void
+ */
+void power_disable_int()
+{
+    GICR &= ~(1 << INT2);
+}
+
+/**
  * External interrupt for detecting slide switch (power button)
  */
 ISR(INT2_vect)
 {
-    power_button_trig = 1;
-    audio.start_clock();
+    if(!power_button_trig) {
+	power_button_trig = 1;
+	audio.start_clock();
+    }
 }
 
 /**
@@ -386,7 +400,8 @@ void power_on(void)
 
     // restart audio (timer)
     audio.play();
-
+    button.start_poll();
+    
     // power on inits
     init_board();
     init_tetronimo();
@@ -409,6 +424,7 @@ void power_off(void)
     MCUCSR &= ~(1 << ISC2);
 
     // stop software timers/interrupts
+    button.stop_poll();
     audio.stop();
     audio.stop_clock(); // this line solves mystery current
 
@@ -416,8 +432,8 @@ void power_off(void)
     display.off();
 
     // power down de-inits
-    power_enable_int();
     power_button_trig = 0;
+    power_enable_int();
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     sleep_mode();
 }
@@ -426,11 +442,10 @@ void check_power_switch(void)
 {
     // if power button triggered, check the state and turn on/off accordingly
     if(power_button_trig) {
+	power_disable_int();
 	if(check_power_state()) {
-	    PORTD |= (1 << 7);
 	    power_on();
 	} else {
-	    PORTD &= ~(1 << 7);
 	    power_off();
 	}
 	

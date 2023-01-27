@@ -22,7 +22,9 @@ void config_common(void);
 void config_distinct(void);
 
 typedef struct button {
-    void (*init)();
+    void (*init)(void);
+    void (*start_poll)(void);
+    void (*stop_poll)(void);
 } Button;
 extern Button button;
 
