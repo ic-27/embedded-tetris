@@ -23,8 +23,8 @@ Tetronimo tetronimo = {0};
 unsigned char board[ROWS][COLUMNS] = {0};
 
 
-void power_on(void);
-void power_off(void);
+void reinit(void);
+void deinit(void);
 
 /**
  * _set_tetronimo_start_pos()
@@ -116,10 +116,6 @@ static void init_tetronimo()
 	break;
     }
 }
-
-static unsigned char power_button_trig;
-unsigned char check_power_state(void);
-void power_enable_int(void);
 
 static void init_board(void);
 void clear_lines(void);
@@ -333,16 +329,6 @@ static void init_board(void)
 }
 
 /**
- * power_enable_int() - Enable interrupt for power pin
- *
- * Return: void
- */
-void power_enable_int()
-{
-    GICR |= (1 << INT2);
-}
-
-/**
  * power_disable_int() - Enable interrupt for power pin
  *
  * Return: void
@@ -364,23 +350,13 @@ ISR(INT2_vect)
 }
 
 /**
- * check_power_state() - Check which state slide switch is flipped to
- *
- * Return: boolean of whether on/off
- */
-unsigned char check_power_state(void)
-{
-    return !(PINB & (1 << 2));
-}
-
-/**
- * power_on()
+ * reinit()
  *
  * Initialize modules upon a power on.
  *
  * Return: void
  */
-void power_on(void)
+void reinit(void)
 {
     // config slide switch to look for rising edge
     MCUCSR |= (1 << ISC2); 
@@ -393,19 +369,19 @@ void power_on(void)
     init_board();
     init_tetronimo();
     display.init();
-    
-    power_enable_int();
+
+    power.turn_on();
     power_button_trig = 0;
 }
 
 /**
- * power_off()
+ * deinit()
  *
  * De-init modules upon a power off.
  *
  * Return: void
  */
-void power_off(void)
+void deinit(void)
 {
     // config slide switch to look for falling edge
     MCUCSR &= ~(1 << ISC2);
@@ -420,9 +396,10 @@ void power_off(void)
 
     // power down de-inits
     power_button_trig = 0;
-    power_enable_int();
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    sleep_mode();
+    power.turn_off();
+    /* power_enable_int(); */
+    /* set_sleep_mode(SLEEP_MODE_PWR_DOWN); */
+    /* sleep_mode(); */
 }
 
 void check_power_switch(void)
@@ -430,23 +407,23 @@ void check_power_switch(void)
     // if power button triggered, check the state and turn on/off accordingly
     if(power_button_trig) {
 	power_disable_int();
-	if(check_power_state()) {
-	    power_on();
+	if(power.check_switch_state()) {
+	    reinit();
 	} else {
-	    power_off();
+	    deinit();
 	}
 	
     }
 }
 
 /**
- * init_tetris()
+ * start_tetris()
  *
- * Initialize all the different peripherals.
+ * Initialize all the different peripherals and start!.
  *
  * Return: void
  */
-void init_tetris(void)
+void start_tetris(void)
 {
     power.init();
     //power_init(); // move later
@@ -464,12 +441,12 @@ void init_tetris(void)
     init_tetronimo();
 
     // check power on/off
-    if(check_power_state()) { // on
-	power_on();
+    if(power.check_switch_state()) { // on
+	reinit();
 	audio.play();
 	power.start_main_clock();
     } else { // off
-	power_off();
+	deinit();
     }
 }
 

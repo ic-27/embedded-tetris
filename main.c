@@ -8,7 +8,7 @@ int main(void)
 {
     sei();
     GICR &= ~((1 << INT0) | (1 << INT1) | (1 << INT2)); // disable interrupts initially
-    init_tetris();
+    start_tetris();
 
     for(;;) {
 	if(NEXT_MOVE_READY == next_move) {
