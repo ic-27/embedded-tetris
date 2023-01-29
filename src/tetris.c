@@ -6,6 +6,7 @@
 #include "audio_driver.h"
 #include "bt_driver.h"
 #include "display_driver.h"
+#include "power.h"
 
 #include "tetris.h"
 #include "movement.h"
@@ -116,7 +117,6 @@ static void init_tetronimo()
     }
 }
 
-static unsigned char power_state;
 static unsigned char power_button_trig;
 unsigned char check_power_state(void);
 void power_enable_int(void);
@@ -333,19 +333,6 @@ static void init_board(void)
 }
 
 /**
- * power_init() - Init pin for power switch
- *
- * Return: void
- */
-void power_init(void)
-{
-    DDRD |= (1 << 7); // debug
-	
-    DDRB &= ~(1 << 2); // Set INT2 to be input pull-up
-    PORTB |= (1 << 2);
-}   
-
-/**
  * power_enable_int() - Enable interrupt for power pin
  *
  * Return: void
@@ -372,7 +359,7 @@ ISR(INT2_vect)
 {
     if(!power_button_trig) {
 	power_button_trig = 1;
-	audio.start_clock();
+	power.start_main_clock();
     }
 }
 
@@ -426,7 +413,7 @@ void power_off(void)
     // stop software timers/interrupts
     button.stop_poll();
     audio.stop();
-    audio.stop_clock(); // this line solves mystery current
+    power.stop_main_clock();
 
     // turn off MAX7219 to save power
     display.off();
@@ -461,7 +448,8 @@ void check_power_switch(void)
  */
 void init_tetris(void)
 {
-    power_init(); // move later
+    power.init();
+    //power_init(); // move later
 	
     // initialization of drivers
     display.init();
@@ -479,7 +467,7 @@ void init_tetris(void)
     if(check_power_state()) { // on
 	power_on();
 	audio.play();
-	audio.start_clock(); // bad coupling of different modules, but audio.play() starts the main timer for dropping blocks.
+	power.start_main_clock();
     } else { // off
 	power_off();
     }

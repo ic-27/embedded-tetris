@@ -1,0 +1,77 @@
+#include <avr/io.h>
+#include <avr/sleep.h>
+#include "power.h"
+
+static unsigned char power_button_trig;
+
+/**
+ * power_init() - Init pin for power switch
+ *
+ * Return: void
+ */
+void power_init(void)
+{
+    DDRD |= (1 << 7); // debug
+    
+    DDRB &= ~(1 << 2); // Set INT2 to be input pull-up
+    PORTB |= (1 << 2);
+}
+
+/**
+ * start_sys_clock() - Start the system clock, which controls the pace of the game
+ *
+ * Return: void
+ */
+void start_main_clock(void)
+{
+    TCCR1B |= (1 << CS12)|(1 << CS10); // start TIMER1, ISR(TIMER1_COMPA_vect)  
+}
+
+/**
+ * stop_sys_clock() - Stop the system clock, which controls the pace of the game
+ *
+ * Return: void
+ */
+void stop_main_clock(void)
+{
+    TCCR1B &= ~((1 << CS12)|(1 << CS10));
+}
+
+/**
+ * _enable_int() - Enable interrupt for power pin
+ *
+ * Return: void
+ */
+void _enable_int()
+{
+    GICR |= (1 << INT2);
+}
+
+/**
+ * power_on() - Power on the Atmega
+ *
+ * Return: void
+ */
+void power_on(void)
+{
+  _enable_int();
+}
+
+/**
+ * power_down() - Put the Atmega into power down state
+ *
+ * Return: void
+ */
+void power_down(void)
+{
+  _enable_int();
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_mode();
+}
+
+Power power = {
+    .init = &power_init,
+    .start_main_clock = &start_main_clock,
+    .stop_main_clock = &stop_main_clock,
+    .power_down = &power_down
+};
