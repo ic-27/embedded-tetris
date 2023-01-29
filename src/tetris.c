@@ -443,7 +443,6 @@ void start_tetris(void)
     // check power on/off
     if(power.check_switch_state()) { // on
 	reinit();
-	audio.play();
 	power.start_main_clock();
     } else { // off
 	deinit();
