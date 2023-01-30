@@ -60,7 +60,6 @@ void bluetooth_on(void)
     PORTD |= (1 << BT_PIN);
 }
 
-
 /**
  * bluetooth_off()
  *
@@ -80,7 +79,6 @@ Bluetooth bluetooth = {
     .on   = &bluetooth_on,
     .off  = &bluetooth_off
 };
-
 
 ISR(USART_RXC_vect)
 {
