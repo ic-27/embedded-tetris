@@ -17,9 +17,36 @@ void init_bluetooth(void)
     UCSRB = (1<<RXEN)|(1<<TXEN) |(1<<RXCIE); // enable tx, rx, int
     UCSRC = (1<<URSEL) | (1<<UCSZ0)|(1<<UCSZ1); // async, 8-bit
 
+    DDRD &= ~(1 << BT_SWITCH_PIN); // set up BT switch
+    PORTD |= (1 << BT_SWITCH_PIN);
+    
     DDRD  |= (1 << BT_PIN); // set up BT, controlled through npn transistor
-    //#warning Make sure to turn bluetooth_off at first
+
     bluetooth_off();
+}
+
+/**
+ * _read_bt_switch()
+ *
+ * Read the state of the switch.
+ * The purpose of the switch is let the program know whether to use bt or not.
+ * The bt state will only be read once when the device is powering on.
+ *
+ * Return: void
+ */
+unsigned char _read_bt_switch(void)
+{
+    return !(PIND & (1 << BT_SWITCH_PIN));
+}
+
+void toggle_bt_on_state(void)
+{
+    if(_read_bt_switch()) {
+	bluetooth_on();
+	return;
+    }
+    bluetooth_off();
+
 }
 
 /**
@@ -77,7 +104,8 @@ Bluetooth bluetooth = {
     .tx   = &uart_tx,
     .rx   = &uart_rx,
     .on   = &bluetooth_on,
-    .off  = &bluetooth_off
+    .off  = &bluetooth_off,
+    .toggle_on_switch = &toggle_bt_on_state
 };
 
 ISR(USART_RXC_vect)

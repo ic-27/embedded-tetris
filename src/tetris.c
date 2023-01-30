@@ -341,6 +341,7 @@ void reinit(void)
     init_board();
     init_tetronimo();
     display.init();
+    bluetooth.toggle_on_switch();
 }
 
 /**
@@ -357,6 +358,7 @@ void deinit(void)
     audio.stop();
 
     display.off();
+    bluetooth.off();
 }
 
 /**
