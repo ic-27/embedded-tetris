@@ -4,7 +4,7 @@
 #include "power.h"
 #include "tetris.h"
 
-unsigned char power_button_trig;
+unsigned char power_button_trig = 0;
 
 /**
  * power_init() - Init pin for power switch
@@ -13,10 +13,8 @@ unsigned char power_button_trig;
  */
 void power_init(void)
 {
-    DDRD |= (1 << 7); // debug
-    
-    DDRB &= ~(1 << 2); // Set INT2 to be input pull-up
-    PORTB |= (1 << 2);
+    DDRB &= ~(1 << POWER_PIN); // Set INT2 to be input pull-up
+    PORTB |= (1 << POWER_PIN);
 }
 
 /**
@@ -97,7 +95,7 @@ void turn_off(void)
  */
 unsigned char check_switch_state(void)
 {
-    return !(PINB & (1 << 2));
+    return !(PINB & (1 << POWER_PIN));
 }
 
 /**

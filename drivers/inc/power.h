@@ -1,6 +1,8 @@
 #ifndef POWER_H
 #define POWER_H
 
+#define POWER_PIN 2
+
 extern unsigned char power_button_trig;
 
 void power_init(void);
