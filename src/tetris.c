@@ -14,17 +14,13 @@
 #include "button_handler.h"
 #include "common.h"
 
-unsigned char lock = 0;
+unsigned char lock = 0; // don't allow button presses while tetronimo being placed
 volatile unsigned char damage = 0;
 volatile unsigned char next_move = WAIT_NEXT_MOVE;
 static unsigned char time_till_drop = NORMAL_DROP; // can change depending on time_till_drop_time
 unsigned char time_till_drop_time = NORMAL_DROP;
 Tetronimo tetronimo = {0};
 unsigned char board[ROWS][COLUMNS] = {0};
-
-
-void reinit(void);
-void deinit(void);
 
 /**
  * _set_tetronimo_start_pos()
@@ -329,27 +325,6 @@ static void init_board(void)
 }
 
 /**
- * power_disable_int() - Enable interrupt for power pin
- *
- * Return: void
- */
-void power_disable_int()
-{
-    GICR &= ~(1 << INT2);
-}
-
-/**
- * External interrupt for detecting slide switch (power button)
- */
-ISR(INT2_vect)
-{
-    if(!power_button_trig) {
-	power_button_trig = 1;
-	power.start_main_clock();
-    }
-}
-
-/**
  * reinit()
  *
  * Initialize modules upon a power on.
@@ -358,9 +333,6 @@ ISR(INT2_vect)
  */
 void reinit(void)
 {
-    // config slide switch to look for rising edge
-    MCUCSR |= (1 << ISC2); 
-
     // restart audio (timer)
     audio.play();
     button.start_poll();
@@ -369,9 +341,6 @@ void reinit(void)
     init_board();
     init_tetronimo();
     display.init();
-
-    power.turn_on();
-    power_button_trig = 0;
 }
 
 /**
@@ -383,37 +352,11 @@ void reinit(void)
  */
 void deinit(void)
 {
-    // config slide switch to look for falling edge
-    MCUCSR &= ~(1 << ISC2);
-
     // stop software timers/interrupts
     button.stop_poll();
     audio.stop();
-    power.stop_main_clock();
 
-    // turn off MAX7219 to save power
     display.off();
-
-    // power down de-inits
-    power_button_trig = 0;
-    power.turn_off();
-    /* power_enable_int(); */
-    /* set_sleep_mode(SLEEP_MODE_PWR_DOWN); */
-    /* sleep_mode(); */
-}
-
-void check_power_switch(void)
-{
-    // if power button triggered, check the state and turn on/off accordingly
-    if(power_button_trig) {
-	power_disable_int();
-	if(power.check_switch_state()) {
-	    reinit();
-	} else {
-	    deinit();
-	}
-	
-    }
 }
 
 /**
@@ -426,7 +369,6 @@ void check_power_switch(void)
 void start_tetris(void)
 {
     power.init();
-    //power_init(); // move later
 	
     // initialization of drivers
     display.init();
@@ -440,13 +382,7 @@ void start_tetris(void)
     init_board();
     init_tetronimo();
 
-    // check power on/off
-    if(power.check_switch_state()) { // on
-	reinit();
-	power.start_main_clock();
-    } else { // off
-	deinit();
-    }
+    power.run_initial_switch_check();
 }
 
 /**

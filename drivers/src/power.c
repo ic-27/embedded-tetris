@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include "power.h"
 #include "tetris.h"
@@ -66,12 +67,10 @@ void _disable_int()
 void turn_on(void)
 {
     // config slide switch to look for rising edge
-    //MCUCSR |= (1 << ISC2); 
-
-    //reinit();
-    
+    MCUCSR |= (1 << ISC2); 
+    reinit();
     _enable_int();
-    //power_button_trig = 0;
+    power_button_trig = 0;
 }
 
 /**
@@ -81,7 +80,11 @@ void turn_on(void)
  */
 void turn_off(void)
 {
-    //power_button_trig = 0;
+     // config slide switch to look for falling edge
+    MCUCSR &= ~(1 << ISC2);
+    deinit();
+    stop_main_clock();
+    power_button_trig = 0;
     _enable_int();
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     sleep_mode();
@@ -98,52 +101,53 @@ unsigned char check_switch_state(void)
 }
 
 /**
- * check_on_switch_trigger()
+ * switch_trigger_action()
  *
  * Check the status of the switch and turn everything on/off upon a switch trigger
  *
  * Return: void
  */
-void check_on_switch_trigger(void)
+void switch_trigger_action(void)
 {
     if(power_button_trig) {
 	_disable_int();
 	if(check_switch_state()) {
-	    // call power_on function
+	    turn_on();
 	    return;
 	}
-	// call power_off function
+	turn_off();
     }
 }
 
-/* void check_switch_status(void) */
-/* { */
-/*     if(power_button_trig) { */
-/* 	power_disable_int(); */
-/* 	if(check_switch_state()) { */
-/* 	    power_on(); */
-/* 	} else { */
-/* 	    power_off(); */
-/* 	} */
-/*     }     */
-/* } */
+/**
+ * run_initial_switch_check()
+ *
+ * Run the initial check at the start when microcontroller is turned on for switch state
+ *
+ * Return: void
+ */
+void run_initial_switch_check(void)
+{
+    if(check_switch_state()) { // on
+	turn_on();
+	start_main_clock();
+	return;
+    }
+    turn_off();
+}
 
 /**
  * External interrupt for detecting slide switch (power button)
  */
-/* ISR(INT2_vect) */
-/* { */
-/*     if(!power_button_trig) { */
-/* 	power_button_trig = 1; */
-/* 	start_main_clock(); */
-/*     } */
-/* } */
+ISR(INT2_vect)
+{
+    if(!power_button_trig) {
+	power_button_trig = 1;
+	start_main_clock();
+    }
+}
 
 Power power = {
     .init = &power_init,
-    .start_main_clock = &start_main_clock,
-    .stop_main_clock = &stop_main_clock,
-    .turn_on = &turn_on,
-    .turn_off = &turn_off,
-    .check_switch_state = &check_switch_state
+    .run_initial_switch_check = &run_initial_switch_check
 };

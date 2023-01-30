@@ -73,3 +73,4 @@ void check_power_switch(void);
 void reinit(void);
 void deinit(void);
 #endif
+
