@@ -4,7 +4,7 @@
 #include "common.h"
 
 /* TIM0 MACROS */
-#define TIM0_PRESCALER 256
+#define TIM0_PRESCALER	256
 /**
  * HZ_TO_OCRn() - Convert Hz to OCRn
  * @hz: hertz to generate
@@ -19,28 +19,28 @@
 #define HZ_TO_OCRn(hz) ((F_CPU/hz/(2*TIM0_PRESCALER)-1))
 
 // Notes defined in terms of hertz
-#define NOTE_GS3_HZ 208
-#define NOTE_A3_HZ  220
-#define NOTE_B3_HZ  247
-#define NOTE_C4_HZ  262
-#define NOTE_D4_HZ  294
-#define NOTE_E4_HZ  330
-#define NOTE_F4_HZ  349
-#define NOTE_G4_HZ  392
-#define NOTE_GS4_HZ 415
-#define NOTE_A4_HZ  440
+#define NOTE_GS3_HZ	208
+#define NOTE_A3_HZ	220
+#define NOTE_B3_HZ	247
+#define NOTE_C4_HZ	262
+#define NOTE_D4_HZ	294
+#define NOTE_E4_HZ	330
+#define NOTE_F4_HZ	349
+#define NOTE_G4_HZ	392
+#define NOTE_GS4_HZ	415
+#define NOTE_A4_HZ	440
 
 // Notes defined in terms of OCRn
-#define NOTE_GS3 HZ_TO_OCRn(NOTE_GS3_HZ)
-#define NOTE_A3  HZ_TO_OCRn(NOTE_A3_HZ)
-#define NOTE_B3  HZ_TO_OCRn(NOTE_B3_HZ)
-#define NOTE_C4  HZ_TO_OCRn(NOTE_C4_HZ)
-#define NOTE_D4  HZ_TO_OCRn(NOTE_D4_HZ)
-#define NOTE_E4  HZ_TO_OCRn(NOTE_E4_HZ)
-#define NOTE_F4  HZ_TO_OCRn(NOTE_F4_HZ)
-#define NOTE_G4  HZ_TO_OCRn(NOTE_G4_HZ)
-#define NOTE_GS4 HZ_TO_OCRn(NOTE_GS4_HZ)
-#define NOTE_A4  HZ_TO_OCRn(NOTE_A4_HZ)
+#define NOTE_GS3	HZ_TO_OCRn(NOTE_GS3_HZ)
+#define NOTE_A3		HZ_TO_OCRn(NOTE_A3_HZ)
+#define NOTE_B3		HZ_TO_OCRn(NOTE_B3_HZ)
+#define NOTE_C4		HZ_TO_OCRn(NOTE_C4_HZ)
+#define NOTE_D4		HZ_TO_OCRn(NOTE_D4_HZ)
+#define NOTE_E4		HZ_TO_OCRn(NOTE_E4_HZ)
+#define NOTE_F4		HZ_TO_OCRn(NOTE_F4_HZ)
+#define NOTE_G4		HZ_TO_OCRn(NOTE_G4_HZ)
+#define NOTE_GS4	HZ_TO_OCRn(NOTE_GS4_HZ)
+#define NOTE_A4		HZ_TO_OCRn(NOTE_A4_HZ)
 
 /* TIM1 MACROS */
 #define TIM1_PRESCALER 1024
