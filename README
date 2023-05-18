@@ -1,12 +1,11 @@
 This is an implementation of tetris on the Atmega32-16PU microcontroller. It
 features audio (tetris theme song) through a piezoelectric buzzer, and VS battle
-through bluetooth.
+through bluetooth. Please see the tetris_demo.mp4 file for a demonstration.
 
 The Atmega32-16PU microcontroller was programmed using an Arduino ISP. A link to
 the tutorial is here:
 https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
 
 TODO:
-- Add demonstration video
-- Create a PCB
+- Create and test PCB
 
