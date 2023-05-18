@@ -57,7 +57,7 @@ void init_audio()
     OCR1A = OCR1A_VAL;//1952;// 3905; // 250 ms
     TCNT1 = 0;
     // Enable the interrupt for TIMER1
-#warning probably better placement for these rather than in init_audio()
+
     TIMSK |= (1 << OCIE1A); // enable interrupt
     TIFR  |= (1 << OCF1A);  // allow execution of interrupt
 }
@@ -81,7 +81,6 @@ void play_audio()
     OCR0 = tetris_melody[note++];
 
     TCCR0  |= (1 << CS02); // start TIMER0 (waveform generation for buzzer)
-    TCCR1B |= (1 << CS12)|(1 << CS10); // start TIMER1, ISR(TIMER1_COMPA_vect)
 }
 
 /**
@@ -112,9 +111,21 @@ void change_note(unsigned char note)
     TCNT0 = 0;
 }
 
+void start_clock(void)
+{
+    TCCR1B |= (1 << CS12)|(1 << CS10); // start TIMER1, ISR(TIMER1_COMPA_vect)  
+}
+
+void stop_clock(void)
+{
+    TCCR1B &= ~((1 << CS12)|(1 << CS10));
+}
+
 Audio audio = {
     .init = &init_audio,
     .play = &play_audio,
     .stop = &stop_audio,
+    .start_clock = &start_clock,
+    .stop_clock = &stop_clock,
     .change_note = &change_note
 };

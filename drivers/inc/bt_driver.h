@@ -3,9 +3,9 @@
 
 #include "tetris.h"
 
-#define BAUD_RATE 51 // 9600, see datasheet for table
-#define BT_PIN    PD4
-#define UART_BUFFER_SIZE 3
+#define BAUD_RATE	51	// 9600, see datasheet for table
+#define BT_PIN		PD4
+#define BT_SWITCH_PIN	PD6
 
 typedef struct bluetooth {
     void (*init)(void);
@@ -13,12 +13,10 @@ typedef struct bluetooth {
     unsigned char (*rx)(void);
     void (*on)(void);
     void (*off)(void);
+    void (*toggle_on_switch)(void);
 } Bluetooth;
 extern Bluetooth bluetooth;
 
-void init_uart(void);
-void uart_tx(char ch);
-unsigned char uart_rx(void);
 void bluetooth_on(void);
 void bluetooth_off(void);
 
