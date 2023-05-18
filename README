@@ -6,37 +6,7 @@ The Atmega32-16PU microcontroller was programmed using an Arduino ISP. A link to
 the tutorial is here:
 https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
 
-
 TODO:
-- Push up the tetris piece of shifting blocks up interferes with original
-position
-- Automatically set up bluetooth
-- Add a start screen
-- Create a PCB
 - Add demonstration video
+- Create a PCB
 
-Setting up Bluetooth:
-
-To set up the bluetooth such that they pair automatically to each other, you
-need to first put them AT command mode. This is done by setting the the enable
-pin of the HC-05 to a logic high, and then turning on the HC-05 chip. You should
-see the LED on the HC-05 blink quite slowly. After this upload an arduino with
-the sketch ./tools/bluetooth_command.ino and type in the corresponding commands
-into the serial monitor of the arduio IDE. If you have an alternative solution
-to this, use that. You don't have to have an arduino to do this. Using the
-arduino simply makes everything simpler.
-
-_Master_
-AT+ROLE?
-AT+ROLE=1
-AT+INQ // Get slave ADDR (slave needs to be on)
-AT+BIND=<SLAVE_ADDR> // Put slave ADDR, comma separated
-
-_SLAVE_
-AT+ROLE?
-AT+ROLE=0
-AT+INQ // Get master ADDR (master needs to be on)
-AT+BIND=<MASTER_ADDR>
-
-The HC-05 bluetooth module draws approximately 30mA-40mA, so watch out for the
-battery life.
