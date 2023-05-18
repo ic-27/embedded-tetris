@@ -12,7 +12,7 @@ int main(void)
 
     for(;;) {
 	if(NEXT_MOVE_READY == next_move) {
-	    switch_trigger_action(); // function put here to allow debouncing, since functions in this if statement are run every 500ms
+	    switch_trigger_action(); // function put here to allow debouncing, since functions in this if statement are ran every 500ms
 	    next_move_logic();
 	}
     }

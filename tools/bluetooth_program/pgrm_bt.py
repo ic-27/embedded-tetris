@@ -13,11 +13,9 @@ port = args.port
 sim = args.sim
 
 baud_rate = 38400
-if(sim):
+if sim:
     baud_rate = 9600
 ser = serial.Serial(port, baud_rate, timeout=1)  # 38400 when programming, 9600 during normal operation
-
-at_commands = ["AT+ORGL", "AT+ROLE=", "AT+INQ", "AT+BIND=<SLAVE_ADDR>"]
 
 def send_at_command(command):
     '''
@@ -108,35 +106,14 @@ def get_at_response():
     return ret_val
         
 if(__name__ == "__main__"):
-    print("This is a quick 'n dirty program to program the HC-05 bluetooth chip, for the Atmega 2P tetris game.")
-    print("Please ensure that both bluetooth chips are on to ensure the correct functionality.")
-    
-    print("Press \"h\" for help, \"q\" to quit")
-    while(1):
-        user_input = input("\nEnter a command: ")
-        if(user_input == "q"):
-            break
-        elif(user_input == "h"):
-            print("The possible commands are:")
-            print("\"m\": Program a HC-05 chip as master")
-            print("\"s\": Program a HC-05 chip as slave")
-            print("\"t\": Test HC-05 chip with AT+ROLE? command")
-            print("\"n\": Test if HC-05 chip sees any neighbors also named HC-05")
-        elif(user_input == "s"):
-            print("Starting programming process. Insert the HC-05 chip that will be designated as master first.")
-            send_at_commands()
-        elif(user_input == "t"):
-            print("Testing sending and receiving a response from HC-05")
-            print("If working, you should see a response below this line.")
-            #send_at_command("AT+ROLE?")
-            send_at_command("AT+ADDR?")
-            print(get_at_response())
-        elif(user_input == "a"):
-            #ser.write((command+"\r\n").encode())
-            print("sending")
-            ser.write("2\r\n".encode())
-        else:
-            print("Unknown command")
+    if sim:
+        print("This is a simulation to test 2P mode of the Atmega tetris project.")
+        print("The simulation will send lines(damage) against the player at random intervals.")
+        # call function to start simulation in a thread
+    else:
+        print("This is a quick 'n dirty program to program the HC-05 bluetooth chip, for the Atmega 2P tetris game.")
+        user_input = input("\nPress any key, then enter to start programming. Ensure the HC-05 chip is plugged in.\n")
+        send_at_commands()
     ser.close()
 
 
